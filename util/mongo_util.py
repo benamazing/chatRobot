@@ -3,7 +3,9 @@ import datetime
 import random, string
 
 def random_word(char_length, num_length):
-    return ''.join(random.choice(string.lowercase) for i in range(char_length)).join(random.choice(string.digits) for i in range(num_length))
+    part1 = ''.join(random.choice(string.lowercase) for i in range(char_length))
+    part2 = ''.join(random.choice(string.digits) for i in range(num_length))
+    return part1 + part2
 
 class MongoUtil(object):
     def __init__(self, host='localhost', port=27017, db_name='wx'):
