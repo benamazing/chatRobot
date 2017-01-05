@@ -34,7 +34,10 @@ class WX(tornado.web.RequestHandler):
             if isinstance(wechat.message, TextMessage):
                 content = wechat.message.content
                 answer = tulingRobot.chat(content, userid)
-                xml = wechat.response_text(content=answer)
+                if isinstance(answer, list):
+                    xml = wechat.response_news(articles=answer)
+                else:
+                    xml = wechat.response_text(content=answer)
                 self.write(xml)
                 return
             if isinstance(wechat.message, ImageMessage):

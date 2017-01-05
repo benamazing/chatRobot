@@ -38,17 +38,9 @@ class Tuling(object):
                     ind += 1
                 print resultString
             return resultString
+
         if responseObj['code'] == 308000:
-            print responseObj['text']
-            resultString = responseObj['text'] + "\r\n"
-            ind = 0
-            for food in responseObj['list']:
-                if ind < 3:
-                    resultString += str(ind + 1) + ". 菜名:" + food['name'] + "\r"
-                    resultString += "信息:" + food['info'] + "\r"
-                    resultString += "链接:" + food['detailurl'] + "\r\n"
-                    ind += 1
-            print resultString
-            return resultString
+            articles = [{"title": food['name'], "description": food['info'], "picurl": food['icon'], "url": food['detailurl']} for food in responseObj['list'][:3]]
+            return articles
         return response.read()
 
