@@ -5,9 +5,6 @@ import sys, urllib, urllib2, json
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-tuling_url = 'http://www.tuling123.com/openapi/api'
-apikey = '462d0950420a46ce99911c68bd032ae4'
-
 
 
 class Tuling(object):
@@ -51,5 +48,3 @@ class Tuling(object):
                 print resultString
             return resultString
         return response.read()
-
-tulingRobot = Tuling(url=tuling_url, apikey=apikey)

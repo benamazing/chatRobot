@@ -5,7 +5,6 @@ import tornado.web
 
 from config import *
 from wechat_sdk.messages import *
-from tuling import tulingRobot
 
 class WX(tornado.web.RequestHandler):
     def get(self):

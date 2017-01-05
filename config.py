@@ -8,6 +8,7 @@ import tornado.web
 from wechat_sdk.core.conf import WechatConf
 from wechat_sdk.basic import WechatBasic
 from util.mongo_util import *
+import tuling
 
 settings = {
     'static_path': os.path.join(os.path.dirname(__file__), 'static'),
@@ -34,6 +35,14 @@ with open("conf.json") as f:
         wx_appsecret = conf['appsercet']
     if r'encrypt_mode' in conf:
         wx_mode = conf['encrypt_mode']
+
+    # for tuling apikey
+    if r'tuling_apikey' in conf:
+        tuling_apikey = conf['tuling_apikey']
+    if r'tuling_url' in conf:
+        tuling_url = conf['tuling_url']
+
+tulingRobot = tuling.Tuling(url=tuling_url, apikey=tuling_apikey)
 
 wx_config = WechatConf(token=wx_token, appid=wx_appid, appsecret=wx_appsecret, encrypt_mode=wx_mode)
 wechat = WechatBasic(conf=wx_config)
