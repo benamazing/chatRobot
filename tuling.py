@@ -5,8 +5,6 @@ import sys, urllib, urllib2, json
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-
-
 class Tuling(object):
     def __init__(self, url, apikey):
         self.url = url
@@ -31,20 +29,26 @@ class Tuling(object):
             return responseObj['text'] + "\r\n" + responseObj['url']
         if responseObj['code'] == 302000:
             resultString = ''.join(responseObj['text'] + "\r\n")
+            ind = 0
             for news in responseObj['list']:
-                resultString += "标题:" + news['artical'] + "\r\n"
-                resultString += "来源:" + news['source'] + "\r\n"
-                resultString += "链接:" + news['detailurl'] + "\r\n"
+                if ind < 3:
+                    resultString += str(ind + 1) + ". 标题:" + news['article'] + "\r"
+                    resultString += "来源:" + news['source'] + "\r"
+                    resultString += "链接:" + news['detailurl'] + "\r\n"
+                    ind += 1
                 print resultString
             return resultString
         if responseObj['code'] == 308000:
             print responseObj['text']
             resultString = responseObj['text'] + "\r\n"
+            ind = 0
             for food in responseObj['list']:
-                resultString += "菜名:" + food['name'] + "\r\n"
-                resultString += "图片:" + food['icon'] + "\r\n"
-                resultString += "信息:" + food['info'] + "\r\n"
-                resultString += "链接:" + food['detailurl'] + "\r\n"
-                print resultString
+                if ind < 3:
+                    resultString += str(ind + 1) + ". 菜名:" + food['name'] + "\r"
+                    resultString += "信息:" + food['info'] + "\r"
+                    resultString += "链接:" + food['detailurl'] + "\r\n"
+                    ind += 1
+            print resultString
             return resultString
         return response.read()
+
