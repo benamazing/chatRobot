@@ -28,19 +28,12 @@ class Tuling(object):
         if responseObj['code'] == 200000:
             return responseObj['text'] + "\r\n" + responseObj['url']
         if responseObj['code'] == 302000:
-            resultString = ''.join(responseObj['text'] + "\r\n")
-            ind = 0
-            for news in responseObj['list']:
-                if ind < 3:
-                    resultString += str(ind + 1) + ". 标题:" + news['article'] + "\r"
-                    resultString += "来源:" + news['source'] + "\r"
-                    resultString += "链接:" + news['detailurl'] + "\r\n"
-                    ind += 1
-                print resultString
-            return resultString
+            articles = [{"title": news['article'], "description": news['source'], "picurl": news['icon'], "url": news['detailurl']} for news in responseObj['list'][:3]]
+            return articles
 
         if responseObj['code'] == 308000:
             articles = [{"title": food['name'], "description": food['info'], "picurl": food['icon'], "url": food['detailurl']} for food in responseObj['list'][:3]]
             return articles
         return response.read()
+
 
