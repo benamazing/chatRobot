@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+        <meta charset="UTF-8">
+        <title>Stock Info</title>
+        <script type="text/javascript" src="{{static_url('js/jquery-1.12.4.min.js')}}"></script>
+        <script type="text/javascript" src="{{static_url('js/jquery.dataTables.min.js')}}"></script>
+        <script type="text/javascript" src="{{static_url('js/dataTables.buttons.min.js')}}"></script>
+        <script type="text/javascript" src="{{static_url('js/buttons.flash.min.js')}}"></script>
+        <script type="text/javascript" src="{{static_url('js/jszip.min.js')}}"></script>
+        <script type="text/javascript" src="{{static_url('js/pdfmake.min.js')}}"></script>
+        <script type="text/javascript" src="{{static_url('js/vfs_fonts.js')}}"></script>
+        <script type="text/javascript" src="{{static_url('js/buttons.html5.min.js')}}"></script>
+        <script type="text/javascript" src="{{static_url('js/echarts/echarts.js')}}"></script>
+        <script type="text/javascript" src="{{static_url('js/customized.js')}}"></script>
+
+        <link rel="stylesheet" type="text/css" href="{{static_url('css/jquery.dataTables.min.css')}}" />
+        <link rel="stylesheet" type="text/css" href="{{static_url('css/buttons.dataTables.min.css')}}" />
+</head>
+<body>
+        <table id="hs300">
+                <thead>
+                <tr>
+                        <th>股票代码</th>
+                        <th>股票名称</th>
+                        <th>权重</th>
+                </tr>
+                </thead>
+                <tfoot>
+                        <tr>
+                        <th>股票代码</th>
+                        <th>股票名称</th>
+                        <th>权重</th>
+                        </tr>
+                </tfoot>
+        </table>
+        <div id="chartArea" style="width: 800px; height:600px;">
+        </div>
+</body>
+</html>

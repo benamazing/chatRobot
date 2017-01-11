@@ -5,7 +5,7 @@ import tornado.web
 
 class Index(tornado.web.RequestHandler):
     def get(self):
-        self.render("index.html")
+        self.render("hs300.html")
 
     def post(self):
         req = tornado.escape.json_decode(self.request.body)

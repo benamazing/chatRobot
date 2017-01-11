@@ -1,1 +1,1 @@
-__all__ = ['common', 'wx']
+__all__ = ['common', 'wx', 'hs300']

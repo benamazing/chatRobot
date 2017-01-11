@@ -3,6 +3,7 @@
 import os
 import json
 import tornado.web
+import tushare as ts
 #import aiml
 
 from wechat_sdk.core.conf import WechatConf
@@ -62,6 +63,7 @@ from handle import *
 
 handlers = [
     (r'/', common.Index),
-    (r'/wx', wx.WX)
+    (r'/wx', wx.WX),
+    (r'/hs300list', hs300.HS300)
 #    (r'/aiml', aiml.Alice)
 ]
