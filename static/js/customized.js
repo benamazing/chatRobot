@@ -1,9 +1,11 @@
 $(document).ready(function(){
 
+	var myChart = echarts.init(document.getElementById('chartArea'));
+	myChart.showLoading();
 	$.getJSON("/hs300list", function(result){
 
 		//Render Bar chart
-		var myChart = echarts.init(document.getElementById('chartArea'));
+		myChart.hideLoading();
 		var option = {
 			title: {
 				text: 'Top 10'

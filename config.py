@@ -64,6 +64,8 @@ from handle import *
 handlers = [
     (r'/', common.Index),
     (r'/wx', wx.WX),
-    (r'/hs300list', hs300.HS300)
+    (r'/hs300list', hs300.HS300),
+    (r'/stock', stockList.StockList),
+    (r'/stocklistjson', stockList.StockListJson)
 #    (r'/aiml', aiml.Alice)
 ]
