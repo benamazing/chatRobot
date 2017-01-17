@@ -3,38 +3,42 @@
 <head>
         <meta charset="UTF-8">
         <title>沪深300成分股</title>
-        <script type="text/javascript" src="{{static_url('js/jquery-1.12.4.min.js')}}"></script>
-        <script type="text/javascript" src="{{static_url('js/jquery.dataTables.min.js')}}"></script>
-        <script type="text/javascript" src="{{static_url('js/dataTables.buttons.min.js')}}"></script>
-        <script type="text/javascript" src="{{static_url('js/buttons.flash.min.js')}}"></script>
-        <script type="text/javascript" src="{{static_url('js/jszip.min.js')}}"></script>
-        <script type="text/javascript" src="{{static_url('js/pdfmake.min.js')}}"></script>
-        <script type="text/javascript" src="{{static_url('js/vfs_fonts.js')}}"></script>
-        <script type="text/javascript" src="{{static_url('js/buttons.html5.min.js')}}"></script>
-        <script type="text/javascript" src="{{static_url('js/echarts/echarts.js')}}"></script>
-        <script type="text/javascript" src="{{static_url('js/customized.js')}}"></script>
 
-        <link rel="stylesheet" type="text/css" href="{{static_url('css/jquery.dataTables.min.css')}}" />
-        <link rel="stylesheet" type="text/css" href="{{static_url('css/buttons.dataTables.min.css')}}" />
+        <link href="/static/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" type="text/css" href="/static/css/jquery.dataTables.min.css" />
+        <link rel="stylesheet" type="text/css" href="/static/css/buttons.dataTables.min.css" />
+
+        <script type="text/javascript" src="/static/js/jquery-1.12.4.min.js"></script>
+        <script type="text/javascript" src="/static/js/jquery.dataTables.min.js"></script>
+        <script type="text/javascript" src="/static/js/dataTables.buttons.min.js"></script>
+        <script type="text/javascript" src="/static/js/buttons.flash.min.js"></script>
+        <script type="text/javascript" src="/static/js/jszip.min.js"></script>
+        <script type="text/javascript" src="/static/js/buttons.html5.min.js"></script>
+        <script type="text/javascript" src="/static/js/echarts/echarts.min.js"></script>
+
+        <script type="text/javascript" src="/static/js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="/static/js/hs300.js"></script>
+
 </head>
 <body>
-        <table id="hs300">
-                <thead>
-                <tr>
-                        <th>股票代码</th>
-                        <th>股票名称</th>
-                        <th>权重</th>
-                </tr>
-                </thead>
-                <tfoot>
-                        <tr>
-                        <th>股票代码</th>
-                        <th>股票名称</th>
-                        <th>权重</th>
-                        </tr>
-                </tfoot>
-        </table>
-        <div id="chartArea" style="width: 800px; height:600px;">
+    <div class="container" style="width: 100%; height: 100%">
+        <div class="row" align="center" style="height: 600px">
+            <div id="chartArea" style="height: 100%; width: 50%"></div>
         </div>
+        <div class="row">
+            <h3 id="tableName" class="text-center">
+                全部列表
+            </h3>
+            <table id="hs300">
+                <thead>
+                    <tr>
+                        <th>股票代码</th>
+                        <th>股票名称</th>
+                        <th>权重</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
 </body>
 </html>

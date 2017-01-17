@@ -3,23 +3,24 @@ $(document).ready(function(){
 	var myChart = echarts.init(document.getElementById('chartArea'));
 	myChart.showLoading();
 	$.getJSON("/hs300list", function(result){
-
 		//Render Bar chart
 		myChart.hideLoading();
 		var option = {
 			title: {
-				text: 'Top 10'
+				text: 'Top 10权重股',
+				left: 'center'
 			},
 			tooltip: {},
 			legend: {
-				data: ['Weight']
+				data: ['权重'],
+				top:'bottom'
 			},
 			xAxis: {
 				data: []
 			},
-			yAxis: {data: ['%']},
+			yAxis: {data: ['%'], name: "%"},
 			series: [{
-				name: "Weight",
+				name: "权重",
 				type: "bar",
 				data: []
 			}]

@@ -9,20 +9,19 @@ import redis
 class StockListJson(tornado.web.RequestHandler):
     def get(self):
         type=self.get_argument('type', 'simple')
-        r = redis.StrictRedis(host=redis_host)
         resultString = ""
         if type == 'simple':
-            stock_list_simple_json = r.get("stock_list_simple_json")
+            stock_list_simple_json = redisClient.get("stock_list_simple_json")
             if stock_list_simple_json is None or stock_list_simple_json == '':
                 df = ts.get_stock_basics()
                 result = [{"code":code, "name": df.ix[code]["name"], "industry": df.ix[code]["industry"], "area": df.ix[code]["area"]} for code in df.index]
                 data = {"data": result}
                 resultString = json.dumps(data)
-                r.set("stock_list_simple_json", resultString, ex=86400)
+                redisClient.set("stock_list_simple_json", resultString, ex=86400)
             else:
                 resultString = stock_list_simple_json
         elif type == 'full':
-            stock_list_full_json = r.get("stock_list_full_json")
+            stock_list_full_json = redisClient.get("stock_list_full_json")
             if stock_list_full_json is None or stock_list_full_json == '':
                 result = []
                 df = ts.get_stock_basics()
@@ -38,7 +37,7 @@ class StockListJson(tornado.web.RequestHandler):
                     resultString = json.dumps(data)
                 except Exception, e:
                     print Exception, ":", e
-                r.set("stock_list_full_json", resultString, ex=86400)
+                redisClient.set("stock_list_full_json", resultString, ex=86400)
             else:
                 resultString = stock_list_full_json
         else:

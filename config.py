@@ -56,6 +56,8 @@ wechat = WechatBasic(conf=wx_config)
 
 mongo = MongoUtil()
 
+redisClient = redis.StrictRedis(host=redis_host)
+
 #cur_dir = os.getcwd()
 #print 'cur_dir:', cur_dir
 #os.chdir('./res/alice')
