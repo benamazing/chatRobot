@@ -4,6 +4,7 @@ import os
 import json
 import tornado.web
 import tushare as ts
+import redis
 #import aiml
 
 from wechat_sdk.core.conf import WechatConf
@@ -43,6 +44,11 @@ with open("conf.json") as f:
     if r'tuling_url' in conf:
         tuling_url = conf['tuling_url']
 
+    if r'redis_server_host' in conf:
+        redis_host = conf['redis_server_host']
+    else:
+        redis_host = '127.0.0.1'
+
 tulingRobot = tuling.Tuling(url=tuling_url, apikey=tuling_apikey)
 
 wx_config = WechatConf(token=wx_token, appid=wx_appid, appsecret=wx_appsecret, encrypt_mode=wx_mode)
@@ -66,6 +72,7 @@ handlers = [
     (r'/wx', wx.WX),
     (r'/hs300list', hs300.HS300),
     (r'/stock', stockList.StockList),
-    (r'/stocklistjson', stockList.StockListJson)
+    (r'/stocklistjson', stockList.StockListJson),
+    (r'/sample', sample.Sample)
 #    (r'/aiml', aiml.Alice)
 ]

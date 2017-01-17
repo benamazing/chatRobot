@@ -14,8 +14,9 @@ class Application(tornado.web.Application):
 
 
 if __name__ == '__main__':
-	app = Application()
+	# app = Application()
 	tornado.options.parse_command_line()
+	app = tornado.web.Application(handlers,template_path=os.path.join(os.path.dirname(__file__), "templates"),static_path=os.path.join(os.path.dirname(__file__), "static"))
 	http_server = tornado.httpserver.HTTPServer(app)
 	http_server.listen(options.port)
 	print 'Start listening on port 8081'

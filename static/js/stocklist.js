@@ -1,7 +1,7 @@
 ﻿$(document).ready(function(){
 	var myChart = echarts.init(document.getElementById('mapContainer'), 'vintage');
 	myChart.showLoading();
-	$.getJSON("/stocklistjson?type=simple", function(result){
+	$.getJSON("/stocklistjson?type=full", function(result){
 
 		//Render map
 		myChart.hideLoading();
@@ -74,5 +74,62 @@
 			idx++;
 		}
 		myChart.setOption(option);
+
+		//render tables
+		$('#stockListTable').DataTable({
+			"lengthMenu": [[50,100,-1],[50,100,'All']],
+			"data": result.data,
+			"columns": [
+				{"data": "name"},
+				{"data": "industry"},
+				{"data": "area"},
+				{"data": "pe"},
+				{"data": "outstanding"},
+				{"data": "totals"},
+				{"data": "totalAssets"},
+				{"data": "liquidAssets"},
+				{"data": "esp"},
+				{"data": "bvps"},
+				{"data": "timeToMarket"},
+				{"data": "holders"}
+			]
+		});
+
+		//Bind click
+		myChart.on("click", function(params) {
+			var area = params.name;
+			$('#tableName').text(area + "股票列表");
+			if ($('#stockListTable').hasClass('dataTable')) {
+				dtable = $('#stockListTable').DataTable();
+				//dtable.clear();
+				dtable.destroy();
+			}
+			stockList = [];
+			j = 0;
+			for (i = 0; i < result.data.length; i++){
+				if (result.data[i].area == area){
+					stockList[stockList.length] = result.data[i]
+				}
+			}
+			$('#stockListTable').DataTable({
+				"lengthMenu": [[50,100,-1],[50,100,'All']],
+				"data": stockList,
+				"columns": [
+					{"data": "name"},
+					{"data": "industry"},
+					{"data": "area"},
+					{"data": "pe"},
+					{"data": "outstanding"},
+					{"data": "totals"},
+					{"data": "totalAssets"},
+					{"data": "liquidAssets"},
+					{"data": "esp"},
+					{"data": "bvps"},
+					{"data": "timeToMarket"},
+					{"data": "holders"}
+				]
+			});
+
+		});
 	});
 });
