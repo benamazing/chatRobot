@@ -1,4 +1,10 @@
 ﻿$(document).ready(function(){
+	var mapContainer = document.getElementById('mapContainer');
+	var resizeContainer = function(){
+		mapContainer.style.width = window.innerWidth + 'px';
+		mapContainer.style.height = window.innerHeight * 3/4 + 'px';
+	};
+	//resizeContainer();
 	var myChart = echarts.init(document.getElementById('mapContainer'), 'vintage');
 	myChart.showLoading();
 	$.getJSON("/stocklistjson?type=full", function(result){
@@ -160,4 +166,9 @@
 
 		});
 	});
+
+	window.onresize = function() {
+		resizeContainer();
+		myChart.resize();
+	}
 });

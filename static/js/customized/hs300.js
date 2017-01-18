@@ -1,5 +1,13 @@
 $(document).ready(function(){
-
+	var myContainer = document.getElementById('chartArea');
+	var resizeContainer = function(){
+		w1 = window.innerHeight / 2;
+		w2 = 600;
+		w = w1 > w2 ? w1 :w2;
+		myContainer.style.width = w + 'px';
+		myContainer.style.height = w * 0.5 + 'px';
+	};
+	//resizeContainer();
 	var myChart = echarts.init(document.getElementById('chartArea'));
 	myChart.showLoading();
 	$.getJSON("/hs300list", function(result){
@@ -58,4 +66,8 @@ $(document).ready(function(){
 			]
 		});
 	});
+	window.onresize = function() {
+		resizeContainer();
+		myChart.resize();
+	}
 });
