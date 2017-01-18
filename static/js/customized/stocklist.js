@@ -78,7 +78,21 @@
 		//render tables
 		$('#stockListTable').DataTable({
 			"lengthMenu": [[50,100,-1],[50,100,'All']],
+			buttons: [
+					{
+						extend: 'csv',
+						text: 'Export to csv'
+					},
+					{
+						extend: 'excel',
+						text: 'Export to Excel'
+					}
+			],
 			"data": result.data,
+			"initComplete": function(settings, json){
+					var t = $('#stockListTable').DataTable();
+					t.buttons(0, null).containers().appendTo('#tableDiv');
+			 },
 			"columns": [
 				{"data": "name"},
 				{"data": "industry"},
@@ -112,8 +126,22 @@
 				}
 			}
 			$('#stockListTable').DataTable({
+				buttons: [
+						{
+							extend: 'csv',
+							text: 'Export to csv'
+						},
+						{
+							extend: 'excel',
+							text: 'Export to Excel'
+						}
+				],
 				"lengthMenu": [[50,100,-1],[50,100,'All']],
 				"data": stockList,
+				"initComplete": function(settings, json){
+						var t = $('#stockListTable').DataTable();
+						t.buttons(0, null).containers().appendTo('#tableDiv');
+				 },
 				"columns": [
 					{"data": "name"},
 					{"data": "industry"},

@@ -15,10 +15,10 @@ $(document).ready(function(){
 				data: ['权重'],
 				top:'bottom'
 			},
-			xAxis: {
+			yAxis: {
 				data: []
 			},
-			yAxis: {data: ['%'], name: "%"},
+			xAxis: {},
 			series: [{
 				name: "权重",
 				type: "bar",
@@ -27,7 +27,7 @@ $(document).ready(function(){
 		};
 		for (i = 0; i < result.data.length; i++){
 			if (i > 9) break;
-			option.xAxis.data[i] = result.data[i].name;
+			option.yAxis.data[i] = result.data[i].name;
 			option.series[0].data[i] = result.data[i].weight;
 		}
 		myChart.setOption(option);
@@ -44,12 +44,12 @@ $(document).ready(function(){
 						text: 'Export to Excel'
 					}
 			],
-			"lengthMenu": [[10,50,100, -1], [10,50,100,"All"]],
+			"lengthMenu": [[50,100, -1], [50,100,"All"]],
 			//"ajax": "/hs300list",
 			"data": result.data,
             "initComplete": function(settings, json){
                     var t = $('#hs300').DataTable();
-                    t.buttons(0, null).containers().appendTo('body');
+                    t.buttons(0, null).containers().appendTo('#tableDiv');
              },
 			"columns": [
 					{"data": "code"},

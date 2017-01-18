@@ -8,5 +8,4 @@ class Index(tornado.web.RequestHandler):
         self.render("hs300.html")
 
     def post(self):
-        req = tornado.escape.json_decode(self.request.body)
-        self.write("lwons")
+        pass
