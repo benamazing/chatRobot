@@ -5,6 +5,10 @@ from config import *
 
 class Sample(tornado.web.RequestHandler):
     def get(self):
-        self.render("sample.html")
+        user = {}
+        user['name'] = 'ben'
+        user['age'] = 30
+        user['cars'] = ['benz', 'bmw', 'honda']
+        self.render("sampleTemplateWithVariables.html", user=user)
     def post(self):
         self.get()

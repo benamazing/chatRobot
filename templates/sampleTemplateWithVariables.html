@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ user['name'] }}</title>
+</head>
+<body>
+    <p>{{ user['name'] }}</p>
+    <p>{{ user['age'] }}</p>
+    {% for car in user['cars'] %}
+        <p>{{ car }}</p>
+    {% end %}
+</body>
+</html>

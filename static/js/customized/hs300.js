@@ -10,7 +10,7 @@ $(document).ready(function(){
 	//resizeContainer();
 	var myChart = echarts.init(document.getElementById('chartArea'));
 	myChart.showLoading();
-	$.getJSON("/hs300list", function(result){
+	$.getJSON("/hs300listjson", function(result){
 		//Render Bar chart
 		myChart.hideLoading();
 		var option = {

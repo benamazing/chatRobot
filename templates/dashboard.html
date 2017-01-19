@@ -9,7 +9,7 @@
     <meta name="author" content="">
     <link rel="icon" href="../../favicon.ico">
 
-    <title>Dashboard Template for Bootstrap</title>
+    <title>{% block title %}Dashboard Template for Bootstrap{% end %}</title>
 
     <!-- Bootstrap core CSS -->
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
@@ -18,9 +18,13 @@
     <link rel="stylesheet" type="text/css" href="/static/css/jquery.dataTables.min.css" />
     <link rel="stylesheet" type="text/css" href="/static/css/buttons.dataTables.min.css" />
 
-    <!-- Custom styles for this template -->
+    <!-- Dashboard css -->
     <link href="/static/css/dashboard.css" rel="stylesheet">
 
+
+    <!-- Customized css -->
+    {% block CustomizedCSS %}
+    {% end %}
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -30,7 +34,6 @@
   </head>
 
   <body>
-
     <nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
       <div class="container-fluid">
         <div class="navbar-header">
@@ -60,24 +63,27 @@
       <div class="row">
         <div class="col-sm-3 col-md-2 sidebar">
           <ul class="nav nav-sidebar">
-            <li class="active"><a href="/">HS300</a></li>
+            <li><a href="/hs300">HS300</a></li>
             <li><a href="/stock">Stock List</a></li>
-            <li><a href="#">Analytics</a></li>
-            <li><a href="#">Export</a></li>
+            <li><a href="/analytics">Analytics</a></li>
+            <li><a href="/export">Export</a></li>
           </ul>
           <ul class="nav nav-sidebar">
-            <li><a href="">Nav item</a></li>
-            <li><a href="">Nav item again</a></li>
-            <li><a href="">One more nav</a></li>
-            <li><a href="">Another nav item</a></li>
-            <li><a href="">More navigation</a></li>
+            <li><a href="/ref2">Nav item</a></li>
+            <li><a href="/ref3">Nav item again</a></li>
+            <li><a href="/ref4">One more nav</a></li>
+            <li><a href="/ref5">Another nav item</a></li>
+            <li><a href="/ref5">More navigation</a></li>
           </ul>
-          <ul class="nav nav-sidebar">
+<!--          <ul class="nav nav-sidebar">
             <li><a href="">Nav item again</a></li>
             <li><a href="">One more nav</a></li>bar
             <li><a href="">Another nav item</a></li>
           </ul>
+-->
         </div>
+
+        {% block MainPanel %}
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
           <h1 class="page-header">HS300</h1>
 
@@ -100,6 +106,7 @@
             </table>
           </div>
         </div>
+        {% end %}
       </div>
     </div>
 
@@ -112,8 +119,11 @@
     <script type="text/javascript" src="/static/js/echarts/echarts.min.js"></script>
     <script type="text/javascript" src="/static/js/bootstrap/bootstrap.min.js"></script>
 
-    <!--Customized js -->
-    <script type="text/javascript" src="/static/js/customized/hs300.js"></script>
+    <script type="text/javascript" src="/static/js/dashboard.js"></script>
 
+    <!--Customized js -->
+    {% block customizedJS %}
+    <script type="text/javascript" src="/static/js/customized/hs300.js"></script>
+    {% end %}
   </body>
 </html>

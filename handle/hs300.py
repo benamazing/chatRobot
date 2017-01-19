@@ -5,7 +5,7 @@ import tornado.web
 from config import *
 
 
-class HS300(tornado.web.RequestHandler):
+class HS300Json(tornado.web.RequestHandler):
     def get(self):
         hs300 = redisClient.get("hs300_list")
         if hs300 is None or hs300 == '':
@@ -14,10 +14,19 @@ class HS300(tornado.web.RequestHandler):
             result = [{"code":sorted_list.ix[i]['code'], "name": sorted_list.ix[i]['name'], "weight": sorted_list.ix[i]['weight']} for i in sorted_list.index]
             data = {"data": result}
             redisClient.set("hs300_list", json.dumps(data), ex=86400)
+        self.set_header("Cache-Control", "max-age=86400")
         self.write(redisClient.get("hs300_list"))
 
     def post(self):
-        self.get()
+        pass
+
+class HS300(tornado.web.RequestHandler):
+    def get(self):
+        self.render("hs300.html")
+
+    def post(self):
+        pass
+
 
 
 

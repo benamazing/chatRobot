@@ -42,6 +42,8 @@ class StockListJson(tornado.web.RequestHandler):
                 resultString = stock_list_full_json
         else:
             pass
+
+        self.set_header("Cache-Control", "max-age=86400")
         self.write(resultString)
 
     def post(self):
