@@ -54,7 +54,7 @@
 				roam: false,
 				label: {
 					normal: {
-						show: true
+						show: false
 					},
 					emphasis: {
 						show: true
