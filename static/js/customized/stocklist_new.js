@@ -5,7 +5,8 @@
 		mapContainer.style.height = window.innerHeight * 3/4 + 'px';
 	};
 	//resizeContainer();
-	var myChart = echarts.init(document.getElementById('mapContainer'), 'vintage');
+	var myChart = echarts.init(document.getElementById('mapContainer'));
+	var industryChart = echarts.init(document.getElementById("industryChart"));
 	myChart.showLoading();
 	$.getJSON("/stocklistjson?type=full", function(result){
 
@@ -13,7 +14,7 @@
 		myChart.hideLoading();
 		var option = {
 			title: {
-				text: '上市公司分布图',
+				text: '上市公司区域分布图',
 				left: 'center'
 			},
 			tooltip: {
@@ -64,12 +65,19 @@
 			}]
 		};
 		areas = {}
+		industries = {}
 		for (i = 0; i < result.data.length; i++){
 			area = result.data[i].area;
+			industry = result.data[i].industry;
 			if (!!areas[area]) {
 				areas[area] += 1;
 			} else {
 				areas[area] = 1;
+			}
+			if (!!industries[industry]){
+				industries[industry] +=1;
+			} else{
+				industries[industry] = 1;
 			}
 		}
 		idx = 0;
@@ -80,6 +88,36 @@
 			idx++;
 		}
 		myChart.setOption(option);
+
+		//render industryChart
+		var option2 = {
+			title: {
+				text: "行业分布图",
+				left: "center"
+			},
+			tooltip: {},
+			legend: {
+				data: ['数量'],
+				top: 'bottom'
+			},
+			yAxis: {
+				data: []
+			},
+			xAxis: {},
+			series: [{
+				name: "数量",
+				type: "bar",
+				data: []
+			}]
+		};
+
+		idx = 0;
+		for (industry in industries){
+			option2.yAxis.data[idx] = industry;
+			option2.series[0].data[idx] = industries[industry];
+			idx++;
+		};
+		industryChart.setOption(option2);
 
 		//render tables
 		$('#stockListTable').DataTable({

@@ -23,14 +23,12 @@ class StockListJson(tornado.web.RequestHandler):
         elif type == 'full':
             stock_list_full_json = redisClient.get("stock_list_full_json")
             if stock_list_full_json is None or stock_list_full_json == '':
+                stocks = mongo_stock_db['stock_general_info'].find({}, {"_id":0, "reserved":0, "reservedPerShare":0})
                 result = []
-                df = ts.get_stock_basics()
-                for code in df.index:
+                for stock in stocks:
                     row = {}
-                    row[code] = str(code)
-                    for field in df:
-                        if field != 'reserved' and field != 'reservedPerShare':
-                            row[field] = str(df.ix[code][field])
+                    for key in stock.keys():
+                        row[key] = stock[key]
                     result.append(row)
                 data = {"data": result}
                 try:
@@ -51,7 +49,7 @@ class StockListJson(tornado.web.RequestHandler):
 
 class StockList(tornado.web.RequestHandler):
     def get(self):
-        self.render("stocklist.html")
+        self.render("stocklist_new.html")
 
     def post(self):
         pass

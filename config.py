@@ -5,6 +5,7 @@ import json
 import tornado.web
 import tushare as ts
 import redis
+import pymongo
 #import aiml
 
 from wechat_sdk.core.conf import WechatConf
@@ -26,6 +27,8 @@ wx_appid = None
 wx_appsecret = None
 wx_mode = None
 
+mongo_host = '127.0.0.1'
+redis_host = '127.0.0.1'
 with open("conf.json") as f:
     conf_str = f.read()
     conf = json.loads(conf_str)
@@ -46,8 +49,9 @@ with open("conf.json") as f:
 
     if r'redis_server_host' in conf:
         redis_host = conf['redis_server_host']
-    else:
-        redis_host = '127.0.0.1'
+
+    if r'mongo_host' in conf:
+        mongo_host = conf['mongo_host']
 
 tulingRobot = tuling.Tuling(url=tuling_url, apikey=tuling_apikey)
 
@@ -57,6 +61,10 @@ wechat = WechatBasic(conf=wx_config)
 mongo = MongoUtil()
 
 redisClient = redis.StrictRedis(host=redis_host)
+
+mongo_stock_db_name = 'stock'
+mongoClient = pymongo.MongoClient(host=mongo_host)
+mongo_stock_db = mongoClient[mongo_stock_db_name]
 
 #cur_dir = os.getcwd()
 #print 'cur_dir:', cur_dir
