@@ -29,7 +29,7 @@ class DailyRetrieve(object):
             df = None
         if df is not None:
             self.stockDB.drop_collection("stock_general_info")
-            self.stockDB["stock_general_info"].insert_many(json.loads(df.to_json(orient="records")))
+            self.stockDB["stock_general_info"].insert_many(json.loads(df.reset_index().to_json(orient="records")))
 
 if __name__ == '__main__':
     d = DailyRetrieve()
