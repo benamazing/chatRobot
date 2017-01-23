@@ -49,7 +49,7 @@ class StockListJson(tornado.web.RequestHandler):
 
 class StockList(tornado.web.RequestHandler):
     def get(self):
-        self.render("stocklist_new.html")
+        self.render("stocklist.html")
 
     def post(self):
         pass
