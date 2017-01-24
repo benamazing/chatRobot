@@ -12,3 +12,6 @@ def createMenu():
         print result
     except Exception,e:
         print e
+
+if __name__ == '__main__':
+    createMenu()
