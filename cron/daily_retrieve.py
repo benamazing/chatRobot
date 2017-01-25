@@ -1,5 +1,7 @@
 __author__ = 'LIBE5'
 
+import sys
+sys.path.append('..')
 import tushare as ts
 import json
 import pymongo

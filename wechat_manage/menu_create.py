@@ -1,3 +1,5 @@
+import sys
+sys.path.append('..')
 from config import wechat
 import json
 
