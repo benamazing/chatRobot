@@ -2,7 +2,7 @@ from config import wechat
 import json
 
 def createMenu():
-    with open("../conf/wechat_menu.json") as f:
+    with open("conf/wechat_menu.json") as f:
         menu_str = f.read()
         menu = json.loads(menu_str)
 
