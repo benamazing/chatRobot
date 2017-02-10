@@ -29,7 +29,7 @@ class DailyRetrieve(object):
         try:
             df = ts.get_stock_basics()
         except Exception, e:
-            cron_logger.error("get_stock_basics failed", e)
+            cron_logger.exception("get_stock_basics failed")
             df = None
         if df is not None:
             self.stockDB.drop_collection("stock_general_info")
