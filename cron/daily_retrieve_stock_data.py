@@ -64,7 +64,7 @@ class DeltaRetriveStockData(object):
     def delta_get_stock_by_code(self, code=None):
         try:
             now = datetime.datetime.now()
-            start_date = (now - datetime.timedelta(days=3)).strftime('%Y-%m-%d')
+            start_date = (now - datetime.timedelta(days=4)).strftime('%Y-%m-%d')
             k_data = ts.get_k_data(code=code, start=start_date)
             if len(k_data) == 0:
                 return
