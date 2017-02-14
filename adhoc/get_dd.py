@@ -17,6 +17,8 @@ logging.basicConfig(level=logging.WARN,
                 datefmt='%Y-%m-%d %H:%M:%S')
 
 mongo_host = '127.0.0.1'
+mongo_db_name = 'stock'
+stock_hist_data_collection_name = 'stock_hist_data'
 
 with open("../conf.json") as f:
     conf_str = f.read()
@@ -25,8 +27,8 @@ with open("../conf.json") as f:
         mongo_host = conf[r'mongo_host']
 
 mongo_client = pymongo.MongoClient(host=mongo_host, port=27017)
-mongo_db = mongo_client['stock']
-hist_data_collection = mongo_db['stock_hist_data']
+mongo_db = mongo_client[mongo_db_name]
+hist_data_collection = mongo_db[stock_hist_data_collection_name]
 
 def get_all_dd(start, end=None):
     start_date = datetime.datetime.strptime(start, '%Y-%m-%d')
