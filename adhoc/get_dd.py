@@ -16,6 +16,8 @@ logging.basicConfig(level=logging.WARN,
                 format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
                 datefmt='%Y-%m-%d %H:%M:%S')
 
+mongo_host = '127.0.0.1'
+
 with open("../conf.json") as f:
     conf_str = f.read()
     conf = json.loads(conf_str)
