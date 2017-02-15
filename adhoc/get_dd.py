@@ -11,7 +11,7 @@ import json
 import tushare as ts
 import logging
 
-THREAD_NUMS = 20
+THREAD_NUMS = 30
 logging.basicConfig(level=logging.WARN,
                 format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
                 datefmt='%Y-%m-%d %H:%M:%S')
@@ -68,21 +68,49 @@ def get_dd_by_date_single_thread(date, stock_list, threadNo):
             continue
         try:
             df = ts.get_sina_dd(code=code, date=date, vol=500)
-            if df is None or len(df) == 0:
-                hist_data_collection.update_one({"code":code, "date":date}, {"$set":{"over_500_total":0, "over_500_buy":0, "over_500_sell": 0}})
-            else:
-                over_500_buy = 0
-                over_500_sell = 0
-                over_500_total = len(df)
+            total_buy_500 = 0
+            total_sell_500 = 0
+            total_500 = 0
+            last_15_mins_buy_500 = 0
+            last_15_mins_sell_500 = 0
+            last_15_mins_500 = 0
+            last_30_mins_buy_500 = 0
+            last_30_mins_sell_500 = 0
+            last_30_mins_500 = 0
+            if df is not None and len(df) > 0:
+                total_500 = len(df)
                 for idx in df.index:
                     if df.ix[idx]['type'] == '买盘':
-                        over_500_buy += 1
+                        total_buy_500 += 1
+                        if df.ix[idx]['time'] >= '14:30:00':
+                            last_30_mins_buy_500 += 1
+                            last_30_mins_500 += 1
+                            if df.ix[idx]['time'] >= '14:30:15':
+                                last_15_mins_buy_500 +=1
+                                last_15_mins_500 +=1
                     if df.ix[idx]['type'] == '卖盘':
-                        over_500_sell +=1
-                hist_data_collection.update_one({"code":code, "date":date}, {"$set":{"over_500_total":over_500_total, "over_500_buy":over_500_buy, "over_500_sell": over_500_sell}})
+                        total_sell_500 +=1
+                        if df.ix[idx]['time'] >= '14:30:00':
+                            last_30_mins_sell_500 += 1
+                            last_30_mins_500 += 1
+                            if df.ix[idx]['time'] >= '14:30:15':
+                                last_15_mins_sell_500 +=1
+                                last_15_mins_500 +=1
+
+            hist_data_collection.update_one({"code":code, "date":date},
+                                            {"$set":{"total_500":total_500,
+                                                     "total_buy_500":total_buy_500,
+                                                     "total_sell_500": total_sell_500,
+                                                     "last_15_mins_buy_500": last_15_mins_buy_500,
+                                                     "last_15_mins_sell_500": last_15_mins_sell_500,
+                                                     "last_15_mins_500": last_15_mins_500,
+                                                     "last_30_mins_buy_500": last_30_mins_buy_500,
+                                                     "last_30_mins_sell_500": last_30_mins_sell_500,
+                                                     "last_30_mins_500": last_30_mins_500,
+                                                     }})
         except:
             logging.exception("%s, %s: got exception" % (code, date))
 
 if __name__ == '__main__':
-    get_all_dd(start='2017-01-03')
+    get_all_dd(start='2017-01-18')
 
