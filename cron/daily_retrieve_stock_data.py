@@ -88,12 +88,45 @@ class DeltaRetriveStockData(object):
                     return
                 self.mongo_collection.insert_many(json.loads(full_data.to_json(orient='records')))
                 logging.debug('%s: inserted full data into mongo' % code)
+
+                # calculate price change
+                logging.debug('%s: start' % code)
+                rs = self.mongo_collection.find({"code": code}).sort("date", 1)
+                data_list = list(rs)
+                for x in range(1, len(data_list)):
+                    pre_close = data_list[x - 1]['close']
+                    close = data_list[x]['close']
+                    p_change = round((close / pre_close - 1) * 100, 2)
+                    self.mongo_collection.update_one({"code": code, "date": data_list[x]['date']},
+                                                    {"$set": {"p_change": p_change}})
+                logging.debug('%s: end' % code)
+
                 logging.warn('%s: Full load done.' % code)
 
             else:
                 for idx in k_data.index:
                     self.mongo_collection.delete_many({"code":code, "date": k_data.ix[idx]['date']})
                 self.mongo_collection.insert(json.loads(k_data.to_json(orient='records')))
+
+                # calculate price change
+                logging.debug('%s: start delta calculate price change.' % code)
+                begin_dt = k_data.iloc[0]['date']
+                rs = self.mongo_collection.find({"code": code}).sort("date", 1)
+                data_list = list(rs)
+
+                for x in range(0, len(data_list)):
+                    if data_list[x]['date'] == begin_dt:
+                        begin_flag = x
+                        break
+
+                for x in range(begin_flag + 1, len(data_list)):
+                    pre_close = data_list[x-1]['close']
+                    close = data_list[x]['close']
+                    p_change = round((close / pre_close - 1) * 100, 2)
+                    self.mongo_collection.update_one({"code": code, "date": data_list[x]['date']},
+                                                     {"$set": {"p_change": p_change}})
+                logging.debug('%s: end delta calculate price change.' % code)
+
                 logging.warn('%s: Delta load done.' % code)
         except:
             logging.exception('%s: got exception.' % code)
