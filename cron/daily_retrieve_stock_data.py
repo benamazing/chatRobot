@@ -119,6 +119,13 @@ class DeltaRetriveStockData(object):
                         begin_flag = x
                         break
 
+                if begin_flag > 0:
+                    pre_close = data_list[begin_flag-1]['close']
+                    close = data_list[begin_flag]['close']
+                    p_change = round((close / pre_close - 1) * 100, 2)
+                    self.mongo_collection.update_one({"code": code, "date": data_list[begin_flag]['date']},
+                                                     {"$set": {"p_change": p_change}})
+
                 for x in range(begin_flag + 1, len(data_list)):
                     pre_close = data_list[x-1]['close']
                     close = data_list[x]['close']
