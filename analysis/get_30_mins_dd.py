@@ -9,8 +9,10 @@ import time
 import threading
 import logging
 import datetime
+import copy
 
 THREAD_NUMS = 30
+TOP_COUNT = 30
 logging.basicConfig(level=logging.INFO,
                 format='%(asctime)s %(filename)s[line:%(lineno)d] %(levelname)s %(message)s',
                 datefmt='%Y-%m-%d %H:%M:%S')
@@ -61,14 +63,15 @@ def get_realtime_dd_single_thread(stock_list, threadNo):
                         item['over_500_sell'] +=1
         results.append(item)
 
+pre_results = []
 while True:
     logging.info('start...')
-    print 'name\tcode\tbuy\tsell\ttotal\tprice\thigh\tp_change'
+    print '%-10s\tcode\tbuy\tsell\ttotal\tprice\thigh\tp_change\ttrend' % 'name'
     time.sleep(1)
     results = []
     get_realtime_dd_multi_threads(stock_list=stocks)
     results = sorted(results, key=lambda x:x['over_500_buy'], reverse=True)
-    codes = [results[x]['code'] for x in range(30)]
+    codes = [results[x]['code'] for x in range(TOP_COUNT)]
     df = ts.get_realtime_quotes(codes)
     id = 0
     for idx in df.index:
@@ -79,10 +82,35 @@ while True:
         results[id]['p_change'] = round((results[idx]['price'] / results[idx]['pre_close'] - 1) * 100, 2)
         id += 1
 
-    for x in range(30):
-        print '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s' % (results[x]['name'], results[x]['code'], results[x]['over_500_buy'], results[x]['over_500_sell'],
-                                        results[x]['over_500_total'], results[x]['price'], results[x]['high'], results[x]['p_change'])
+    top_results = results[0:TOP_COUNT]
 
+    if len(pre_results) == 0:
+        pre_results = copy.deepcopy(top_results)
+
+    for x in range(TOP_COUNT):
+        item = top_results[x]
+        matched = False
+        previous_rank = 1000
+        for y in range(TOP_COUNT):
+            if item['code'] == pre_results[y]['code']:
+                matched = True
+                break
+        if matched is True:
+            previous_rank = y
+        if x > previous_rank:
+            arrow = u'↓%d' % (x - previous_rank)
+        elif x == previous_rank:
+            arrow = '-'
+        else:
+            if previous_rank == 1000:
+                arrow = u'↑new'
+            else:
+                arrow = u'↑%d' % (previous_rank - x)
+
+        print '%-10s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s' % (results[x]['name'], results[x]['code'], results[x]['over_500_buy'], results[x]['over_500_sell'],
+                                        results[x]['over_500_total'], results[x]['price'], results[x]['high'], results[x]['p_change'], arrow)
+
+    pre_results = copy.deepcopy(top_results)
     time.sleep(1)
     logging.info("stop for 1 minute, wait for next time...")
     time.sleep(60)
