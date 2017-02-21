@@ -22,8 +22,8 @@ today = datetime.datetime.now().strftime('%Y-%m-%d')
 stocks = ts.get_stock_basics()
 results = []
 
-# 超过500手的算大单
-vol = 500
+# 超过1000手的算大单
+vol = 1000
 
 def get_realtime_dd_multi_threads(stock_list, **kwargs):
         threads = []
@@ -46,9 +46,9 @@ def get_realtime_dd_single_thread(stock_list, threadNo):
         item = {}
         item['code'] = code
         df = ts.get_sina_dd(code=code, date=today, vol=vol)
-        item['over_500_total'] = 0
-        item['over_500_buy'] = 0
-        item['over_500_sell'] = 0
+        item['dd_total'] = 0
+        item['dd_buy'] = 0
+        item['dd_sell'] = 0
 
         # 30 minutes ago
 
@@ -56,11 +56,11 @@ def get_realtime_dd_single_thread(stock_list, threadNo):
             start_time = (datetime.datetime.now() - datetime.timedelta(minutes=30)).strftime('%H:%M:%S')
             for idx in df.index:
                 if df.ix[idx]['time'] > start_time:
-                    item['over_500_total'] += 1
+                    item['dd_total'] += 1
                     if df.ix[idx]['type'] == '买盘':
-                        item['over_500_buy'] += 1
+                        item['dd_buy'] += 1
                     if df.ix[idx]['type'] == '卖盘':
-                        item['over_500_sell'] +=1
+                        item['dd_sell'] +=1
         results.append(item)
 
 pre_results = []
@@ -70,7 +70,7 @@ while True:
     time.sleep(1)
     results = []
     get_realtime_dd_multi_threads(stock_list=stocks)
-    results = sorted(results, key=lambda x:x['over_500_buy'], reverse=True)
+    results = sorted(results, key=lambda x:x['dd_buy'], reverse=True)
     codes = [results[x]['code'] for x in range(TOP_COUNT)]
     df = ts.get_realtime_quotes(codes)
     id = 0
@@ -107,8 +107,8 @@ while True:
             else:
                 arrow = u'↑%d' % (previous_rank - x)
 
-        print '%-10s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s' % (results[x]['name'], results[x]['code'], results[x]['over_500_buy'], results[x]['over_500_sell'],
-                                        results[x]['over_500_total'], results[x]['price'], results[x]['high'], results[x]['p_change'], arrow)
+        print '%-10s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s' % (results[x]['name'], results[x]['code'], results[x]['dd_buy'], results[x]['dd_sell'],
+                                        results[x]['dd_total'], results[x]['price'], results[x]['high'], results[x]['p_change'], arrow)
 
     pre_results = copy.deepcopy(top_results)
     time.sleep(1)
