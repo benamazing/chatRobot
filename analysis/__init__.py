@@ -1,1 +1,1 @@
-__author__ = 'LIBE5'
+from new_tushare import get_sina_dd_by_amount

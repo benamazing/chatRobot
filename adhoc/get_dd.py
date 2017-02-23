@@ -2,7 +2,7 @@
 # encoding=utf-8
 
 __author__ = 'LIBE5'
-'''获取股票大单交易数据，股票交易超过500手的大单数'''
+'''获取股票大单交易数据，股票金额超过100万的大单数'''
 
 import datetime
 import pymongo
@@ -10,6 +10,7 @@ import threading
 import json
 import tushare as ts
 import logging
+import analysis
 
 THREAD_NUMS = 30
 logging.basicConfig(level=logging.WARN,
@@ -19,6 +20,10 @@ logging.basicConfig(level=logging.WARN,
 mongo_host = '127.0.0.1'
 mongo_db_name = 'stock'
 stock_hist_data_collection_name = 'stock_hist_data'
+
+# 超过100万才算大单
+# amount可选值: 50, 100, 200, 500, 1000
+AMOUNT = 100
 
 with open("../conf.json") as f:
     conf_str = f.read()
@@ -67,50 +72,68 @@ def get_dd_by_date_single_thread(date, stock_list, threadNo):
         if ind % THREAD_NUMS != threadNo:
             continue
         try:
-            df = ts.get_sina_dd(code=code, date=date, vol=500)
-            total_buy_500 = 0
-            total_sell_500 = 0
-            total_500 = 0
-            last_15_mins_buy_500 = 0
-            last_15_mins_sell_500 = 0
-            last_15_mins_500 = 0
-            last_30_mins_buy_500 = 0
-            last_30_mins_sell_500 = 0
-            last_30_mins_500 = 0
+            df = analysis.get_sina_dd_by_amount(code=code, date=date, amount=AMOUNT)
+            total_buy_dd = 0
+            total_sell_dd = 0
+            total_dd = 0
+            last_15_mins_buy_dd = 0
+            last_15_mins_sell_dd = 0
+            last_15_mins_dd = 0
+            last_30_mins_buy_dd = 0
+            last_30_mins_sell_dd = 0
+            last_30_mins_dd = 0
+            total_dd_in_rmb = 0
+            total_dd_out_rmb = 0
+            last_15_mins_dd_in_rmb = 0
+            last_15_mins_dd_out_rmb = 0
+            last_30_mins_dd_in_rmb = 0
+            last_30_mins_dd_out_rmb = 0
             if df is not None and len(df) > 0:
-                total_500 = len(df)
+                total_dd = len(df)
                 for idx in df.index:
                     if df.ix[idx]['type'] == '买盘':
-                        total_buy_500 += 1
+                        total_buy_dd += 1
+                        total_dd_in_rmb += df.ix[idx]['volume'] * df.ix[idx]['price']
                         if df.ix[idx]['time'] >= '14:30:00':
-                            last_30_mins_buy_500 += 1
-                            last_30_mins_500 += 1
+                            last_30_mins_buy_dd += 1
+                            last_30_mins_dd += 1
+                            last_30_mins_dd_in_rmb += df.ix[idx]['volume'] * df.ix[idx]['price']
                             if df.ix[idx]['time'] >= '14:30:15':
-                                last_15_mins_buy_500 +=1
-                                last_15_mins_500 +=1
+                                last_15_mins_buy_dd +=1
+                                last_15_mins_dd +=1
+                                last_15_mins_dd_in_rmb += df.ix[idx]['volume'] * df.ix[idx]['price']
                     if df.ix[idx]['type'] == '卖盘':
-                        total_sell_500 +=1
+                        total_sell_dd +=1
+                        total_dd_out_rmb += df.ix[idx]['volume'] * df.ix[idx]['price']
                         if df.ix[idx]['time'] >= '14:30:00':
-                            last_30_mins_sell_500 += 1
-                            last_30_mins_500 += 1
+                            last_30_mins_sell_dd += 1
+                            last_30_mins_dd += 1
+                            last_30_mins_dd_out_rmb += df.ix[idx]['volume'] * df.ix[idx]['price']
                             if df.ix[idx]['time'] >= '14:30:15':
-                                last_15_mins_sell_500 +=1
-                                last_15_mins_500 +=1
+                                last_15_mins_sell_dd +=1
+                                last_15_mins_dd +=1
+                                last_15_mins_dd_out_rmb += df.ix[idx]['volume'] * df.ix[idx]['price']
 
             hist_data_collection.update_one({"code":code, "date":date},
-                                            {"$set":{"total_500":total_500,
-                                                     "total_buy_500":total_buy_500,
-                                                     "total_sell_500": total_sell_500,
-                                                     "last_15_mins_buy_500": last_15_mins_buy_500,
-                                                     "last_15_mins_sell_500": last_15_mins_sell_500,
-                                                     "last_15_mins_500": last_15_mins_500,
-                                                     "last_30_mins_buy_500": last_30_mins_buy_500,
-                                                     "last_30_mins_sell_500": last_30_mins_sell_500,
-                                                     "last_30_mins_500": last_30_mins_500,
+                                            {"$set":{"total_dd":total_dd,
+                                                     "total_buy_dd":total_buy_dd,
+                                                     "total_sell_dd": total_sell_dd,
+                                                     "last_15_mins_buy_dd": last_15_mins_buy_dd,
+                                                     "last_15_mins_sell_dd": last_15_mins_sell_dd,
+                                                     "last_15_mins_dd": last_15_mins_dd,
+                                                     "last_30_mins_buy_dd": last_30_mins_buy_dd,
+                                                     "last_30_mins_sell_dd": last_30_mins_sell_dd,
+                                                     "last_30_mins_dd": last_30_mins_dd,
+                                                     "total_dd_in_rmb": total_dd_in_rmb,
+                                                     "total_dd_out_rmb": total_dd_out_rmb,
+                                                     "last_15_mins_dd_in_rmb": last_15_mins_dd_in_rmb,
+                                                     "last_15_mins_dd_out_rmb": last_15_mins_dd_out_rmb,
+                                                     "last_30_mins_dd_in_rmb": last_30_mins_dd_in_rmb,
+                                                     "last_30_mins_dd_out_rmb": last_30_mins_dd_out_rmb
                                                      }})
         except:
             logging.exception("%s, %s: got exception" % (code, date))
 
 if __name__ == '__main__':
-    get_all_dd(start='2017-01-18')
+    get_all_dd(start='2017-02-03')
 

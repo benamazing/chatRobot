@@ -10,6 +10,7 @@ import threading
 import logging
 import datetime
 import copy
+from new_tushare import get_sina_dd_by_amount
 
 THREAD_NUMS = 30
 TOP_COUNT = 30
@@ -22,8 +23,9 @@ today = datetime.datetime.now().strftime('%Y-%m-%d')
 stocks = ts.get_stock_basics()
 results = []
 
-# 超过1000手的算大单
-vol = 1000
+# 超过100万才算大单
+# amount可选值: 50, 100, 200, 500, 1000
+amount = 100
 
 def get_realtime_dd_multi_threads(stock_list, **kwargs):
         threads = []
@@ -45,10 +47,12 @@ def get_realtime_dd_single_thread(stock_list, threadNo):
             continue
         item = {}
         item['code'] = code
-        df = ts.get_sina_dd(code=code, date=today, vol=vol)
+        df = ts.get_sina_dd_by_amount(code=code, date=today, amount=amount)
         item['dd_total'] = 0
         item['dd_buy'] = 0
         item['dd_sell'] = 0
+        item['dd_in_rmb'] = 0
+        item['dd_out_rmb'] = 0
 
         # 30 minutes ago
 
@@ -59,18 +63,20 @@ def get_realtime_dd_single_thread(stock_list, threadNo):
                     item['dd_total'] += 1
                     if df.ix[idx]['type'] == '买盘':
                         item['dd_buy'] += 1
+                        item['dd_in_rmb'] = item['dd_in_rmb'] + df.ix[idx]['volume'] * df.ix[idx]['price']
                     if df.ix[idx]['type'] == '卖盘':
                         item['dd_sell'] +=1
+                        item['dd_out_rmb'] = item['dd_out_rmb'] + df.ix[idx]['volume'] * df.ix[idx]['price']
         results.append(item)
 
 pre_results = []
 while True:
     logging.info('start...')
-    print '%-10s\tcode\tbuy\tsell\ttotal\tprice\thigh\tp_change\ttrend' % 'name'
+    print '%-10s\t%-10s%-10s%-10s%-10s%-15s%-15s%-15s%-10s%-10s%-10s%-10s' % ('name', 'code', 'buy', 'sell', 'total', 'in', 'out', 'net_in', 'price', 'high', 'p_change', 'trend')
     time.sleep(1)
     results = []
     get_realtime_dd_multi_threads(stock_list=stocks)
-    results = sorted(results, key=lambda x:x['dd_buy'], reverse=True)
+    results = sorted(results, key=lambda x:(x['dd_in_rmb'] - x['dd_out_rmb']), reverse=True)
     codes = [results[x]['code'] for x in range(TOP_COUNT)]
     df = ts.get_realtime_quotes(codes)
     id = 0
@@ -107,8 +113,10 @@ while True:
             else:
                 arrow = u'↑%d' % (previous_rank - x)
 
-        print '%-10s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s' % (results[x]['name'], results[x]['code'], results[x]['dd_buy'], results[x]['dd_sell'],
-                                        results[x]['dd_total'], results[x]['price'], results[x]['high'], results[x]['p_change'], arrow)
+#        print '%-10s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s' % (results[x]['name'], results[x]['code'], results[x]['dd_buy'], results[x]['dd_sell'],
+#                                        results[x]['dd_total'], results[x]['price'], results[x]['high'], results[x]['p_change'], arrow)
+        print '%-10s\t%-10s%-10s%-10s%-10s%-15s%-15s%-15s%-10s%-10s%-10s%-10s' % (results[x]['name'], results[x]['code'], results[x]['dd_buy'], results[x]['dd_sell'],
+                                        results[x]['dd_total'], round(results[x]['dd_in_rmb']/10000), round(results[x]['dd_out_rmb']/10000), round((results[x]['dd_in_rmb'] - results[x]['dd_out_rmb'])/10000), results[x]['price'], results[x]['high'], results[x]['p_change'], arrow)
 
     pre_results = copy.deepcopy(top_results)
     time.sleep(1)
