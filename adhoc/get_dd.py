@@ -1,6 +1,9 @@
 # -*- coding:utf-8 -*-
 # encoding=utf-8
 
+import sys
+sys.path.append('..')
+
 __author__ = 'LIBE5'
 '''获取股票大单交易数据，股票金额超过100万的大单数'''
 
