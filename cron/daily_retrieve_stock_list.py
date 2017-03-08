@@ -6,6 +6,7 @@ import tushare as ts
 import json
 import pymongo
 from util.logger import cron_logger
+import analysis.finance_crawler as crawler
 
 
 class DailyRetrieve(object):
@@ -37,6 +38,20 @@ class DailyRetrieve(object):
             self.stockDB["stock_general_info"].insert_many(json.loads(df.reset_index().to_json(orient="records")))
             cron_logger.info("Updated stock_general_info!")
 
+    def supplementDebt(self):
+        collection = self.stockDB.get_collection('stock_general_info')
+        rs = collection.find().sort("code", 1)
+        d_list = list(rs)
+        for row in d_list:
+            current_debt, total_debt = crawler.get_debt(code=row['code'])
+            if current_debt is None:
+                current_debt = 0
+            if total_debt is None:
+                total_debt = 0
+            print '%s: %s, %s' % (row['code'], current_debt, total_debt)
+            collection.update_one({"code": row['code']}, {"$set": {"current_debt": current_debt, "total_debt": total_debt}})
+
 if __name__ == '__main__':
     d = DailyRetrieve()
     d.retrieveStockBasics()
+    d.supplementDebt()
