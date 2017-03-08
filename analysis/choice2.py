@@ -6,10 +6,25 @@ sys.path.append('..')
 
 import tushare as ts
 import finance_crawler
+import pymongo
+import json
+
+mongo_host = '127.0.0.1'
+mongo_db_name = 'stock'
+
+with open("../conf.json") as f:
+    conf_str = f.read()
+    conf = json.loads(conf_str)
+    if r'mongo_host' in conf:
+        mongo_host = conf[r'mongo_host']
+
+mongo_client = pymongo.MongoClient(host=mongo_host, port=27017)
+mongo_db = mongo_client[mongo_db_name]
+stock_general_info = mongo_db['stock_general_info']
+stock_hist_data = mongo_db['stock_hist_data']
+
 
 # prepare
-today_all = ts.get_today_all()
-all = ts.get_stock_basics()
 hs300 = ts.get_hs300s()
 hs300_array = []
 for x in hs300.code:
@@ -17,33 +32,57 @@ for x in hs300.code:
 
 filter_list = []
 
-def filter_by_pb_and_hs300():
-    for idx in today_all.index:
-        code = today_all.ix[idx]['code']
-        name = all.ix[code]['name']
-        pb = all.ix[code]['pb']
-        if pb < 2 and pb > 0 and code in hs300_array:
-            filter_list.append(code)
-    return filter_list
 
-def filter_by_asset_debt_ratio(codes):
-    result = []
-    for code in codes:
-        print 'getting debt info of %s' % code
-        current_debt, total_debt = finance_crawler.get_debt(code)
-        if current_debt is not None:
-            total_asset = all.ix[code]['totalAssets']
-            liquid_asset = all.ix[code]['liquidAssets']
-            if liquid_asset / current_debt > 1.2:
-                result.append(code)
-    return result
+def avg_debt_to_asset_ratio():
+    ratios = []
+    rs = stock_general_info.find()
+    for row in rs:
+        ratios.append(row['total_debt'] / row['totalAssets'])
+    avg_ration = float(sum(ratios)) / len(ratios)
+    return avg_ration
+
+
+def select_stocks():
+    selected = []
+    avg_ratio = avg_debt_to_asset_ratio()
+    for code in hs300_array:
+        rs = stock_general_info.find({"code": code})
+        if rs.count() != 1:
+            continue
+        stock = rs[0]
+        pb = stock['pb']
+        total_asset = stock['totalAssets']
+        total_debt = stock['total_debt']
+        liquid_asset = stock['liquidAssets']
+        current_debt = stock['current_debt']
+
+        # 筛掉市净率大于2的
+        if pb <= 0 or pb >= 2:
+            continue
+
+        # 筛掉资产负债率小于平均值的
+        if total_debt / total_asset <= avg_ratio:
+            continue
+
+        # 筛掉流动资产不足流动负债1.2倍的
+        if current_debt == 0:
+            continue
+        if liquid_asset / current_debt <= 1.2:
+            continue
+
+        selected.append(code)
+
+    return  selected
 
 if __name__ == '__main__':
-    codes = filter_by_pb_and_hs300()
-    print len(codes)
-    result = filter_by_asset_debt_ratio(codes)
-    print len(result)
-    print result
+    stocks = select_stocks()
+    for code in stocks:
+        stock = stock_general_info.find_one({"code": code})
+        print '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s' % (stock['code'], stock['name'], stock['pb'],
+                                          stock['pe'], stock['totalAssets'], stock['liquidAssets'],
+                                          stock['total_debt'], stock['current_debt'],
+                                                       round(stock['liquidAssets']/stock['current_debt'], 2),
+                                                       round(stock['total_debt']/stock['totalAssets'], 2))
 
 
 
