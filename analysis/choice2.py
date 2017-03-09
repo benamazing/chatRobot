@@ -8,30 +8,46 @@ import tushare as ts
 import finance_crawler
 import pymongo
 import json
+import redis
 
 mongo_host = '127.0.0.1'
 mongo_db_name = 'stock'
+redisClient = None
 
 with open("../conf.json") as f:
     conf_str = f.read()
     conf = json.loads(conf_str)
     if r'mongo_host' in conf:
         mongo_host = conf[r'mongo_host']
+    if r'redis_server_host' in conf:
+        redis_host = conf[r'redis_server_host']
+        redisClient = redis.StrictRedis(host=redis_host)
 
 mongo_client = pymongo.MongoClient(host=mongo_host, port=27017)
 mongo_db = mongo_client[mongo_db_name]
 stock_general_info = mongo_db['stock_general_info']
 stock_hist_data = mongo_db['stock_hist_data']
 
-
-# prepare
-hs300 = ts.get_hs300s()
+# get hs300
 hs300_array = []
-for x in hs300.code:
-    hs300_array.append(x)
-
-filter_list = []
-
+if redisClient is None:
+    print 'Retriving hs300 from tushare...'
+    hs300 = ts.get_hs300s()
+    for x in hs300.code:
+        hs300_array.append(x)
+else:
+    hs300 = redisClient.get("hs300_list")
+    if hs300 is None or hs300 == '':
+        df = ts.get_hs300s()
+        sorted_list = df.sort_values('weight', ascending=False)
+        result = [{"code":sorted_list.ix[i]['code'], "name": sorted_list.ix[i]['name'], "weight": sorted_list.ix[i]['weight']} for i in sorted_list.index]
+        data = {"data": result}
+        redisClient.set("hs300_list", json.dumps(data), ex=86400)
+    print 'Retrieveing hs300 from cache...'
+    hs300_json_str = redisClient.get("hs300_list")
+    hs300_json = json.loads(hs300_json_str)
+    for stocks in hs300_json['data']:
+        hs300_array.append(stocks['code'])
 
 def avg_debt_to_asset_ratio():
     ratios = []
