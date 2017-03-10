@@ -5,10 +5,10 @@ import sys
 sys.path.append('..')
 
 import tushare as ts
-import finance_crawler
 import pymongo
 import json
 import redis
+import common_service as cs
 
 mongo_host = '127.0.0.1'
 mongo_db_name = 'stock'
@@ -92,13 +92,25 @@ def select_stocks():
 
 if __name__ == '__main__':
     stocks = select_stocks()
+    print '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s' % ('code', 'name', u'市净率', u'市盈率', u'总资产', u'流动资产', u'总资产负债',
+                                                                                              u'流动资产负债', u'流动资产/流动负债比', u'资产负债率', 'high_30', 'high_30_date',
+                                                                                              'low_30', 'low_30_date', 'high_100', 'high_100_date', 'low_100', 'low_100_date', 'current_price')
     for code in stocks:
+        df = ts.get_realtime_quotes(code)
+        if df is None:
+            current_price = 'N/A'
+        else:
+            current_price = df.ix[0]['price']
         stock = stock_general_info.find_one({"code": code})
-        print '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s' % (stock['code'], stock['name'], stock['pb'],
+        high_30, high_30_date, low_30, low_30_date = cs.get_stock_hist_high_and_low(stock['code'], days=30)
+        high_100, high_100_date, low_100, low_100_date = cs.get_stock_hist_high_and_low(stock['code'], days=100)
+
+        print '%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s' % (stock['code'], stock['name'], stock['pb'],
                                           stock['pe'], stock['totalAssets'], stock['liquidAssets'],
                                           stock['total_debt'], stock['current_debt'],
-                                                       round(stock['liquidAssets']/stock['current_debt'], 2),
-                                                       round(stock['total_debt']/stock['totalAssets'], 2))
+                                          round(stock['liquidAssets']/stock['current_debt'], 2),
+                                          round(stock['total_debt']/stock['totalAssets'], 2), high_30, high_30_date, low_30, low_30_date,
+                                          high_100, high_100_date, low_100, low_100_date, current_price)
 
 
 

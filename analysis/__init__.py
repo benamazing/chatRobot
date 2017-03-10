@@ -1,2 +1,3 @@
 from new_tushare import get_sina_dd_by_amount
 from finance_crawler import get_debt
+from common_service import get_stock_hist_high_and_low
