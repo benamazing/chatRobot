@@ -3,16 +3,16 @@
 
 import sys
 sys.path.append('..')
-import tushare as ts
 import json
 import pymongo
 import logging
-import threading
 import datetime
 import easytrader
+from util.mail_util import mail_service
 
 '''每天获取当天的账户持股和资金状况'''
 
+logging.basicConfig(level=logging.ERROR)
 
 class Account(object):
     def __init__(self):
@@ -73,7 +73,12 @@ class Account(object):
 
 if __name__ == '__main__':
     account = Account()
-    account.retrieve_balance()
-    account.retrieve_hold_stocks()
+    try:
+        account.retrieve_balance()
+        account.retrieve_hold_stocks()
+    except Exception, e:
+        to_addr = ['lxb_sysu@163.com']
+        mail_service.send_text_mail(to_addr=to_addr, subject='Daily Retrieve Account Info: Error', plain_text=e)
+        logging.exception("Failed to retrieve account info")
 
 

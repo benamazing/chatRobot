@@ -171,7 +171,7 @@ if __name__ == '__main__':
         html_text = html_text + row
 
     html_text = html_text + '</tbody><table></body></html>'
-    mail_service.send_html_mail(to_addr='lxb_sysu@163.com', html_text=html_text)
+    mail_service.send_html_mail(to_addr='lxb_sysu@163.com', subject='Test', html_text=html_text)
 
 
 
