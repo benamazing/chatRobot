@@ -73,12 +73,19 @@ class Account(object):
 
 if __name__ == '__main__':
     account = Account()
-    try:
-        account.retrieve_balance()
-        account.retrieve_hold_stocks()
-    except Exception, e:
+    retry = 0
+    while retry < 3:
+        try:
+            account.retrieve_balance()
+            account.retrieve_hold_stocks()
+            break
+        except Exception, e:
+            retry += 1
+            logging.exception("Failed to retrieve account info")
+
+    if retry == 3:
         to_addr = ['lxb_sysu@163.com']
-        mail_service.send_text_mail(to_addr=to_addr, subject='Daily Retrieve Account Info: Error', plain_text=e)
-        logging.exception("Failed to retrieve account info")
+        mail_service.send_text_mail(to_addr=to_addr, subject='Daily Retrieve Account Info: Error', plain_text='check log file')
+
 
 
