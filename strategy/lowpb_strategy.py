@@ -144,6 +144,8 @@ class Strategy(object):
         piece_cap = self.balance / len(code_list)
         for code in code_list:
             r = self.hist_data_collection.find({"code": code, "date": date_str})
+            #if r.count() == 0:
+            #    print 'Failed to buy %s' % code
             if r.count() == 1:
                 if r[0]['open'] == r[0]['close'] and r[0]['high'] == r[0]['open'] and r[0]['high'] == r[0]['low']:
                     return
@@ -157,7 +159,7 @@ class Strategy(object):
     def sell(self, code, date):
         date_str = date.strftime('%Y-%m-%d')
         r = self.hist_data_collection.find({"code": code, "date": date_str})
-        if r.count == 1:
+        if r.count() == 1:
             sell_price = r[0]['open']
             sell_amount = self.hold_stocks[code]
             self.hold_stocks.pop(code)
