@@ -40,14 +40,14 @@ class Strategy(object):
         #     self.stocks_pool.append(x)
 
         # 沪深300为股票池
-        hs300 = ts.get_hs300s()
-        for x in hs300.code:
-            self.stocks_pool.append(x)
+        # hs300 = ts.get_hs300s()
+        # for x in hs300.code:
+        #     self.stocks_pool.append(x)
 
-        # df = ts.get_stock_basics()
-        # for code in df.index:
-        #     if df.ix[code]['timeToMarket'] < 20160101:
-        #         self.stocks_pool.append(code)
+        df = ts.get_stock_basics()
+        for code in df.index:
+            if df.ix[code]['timeToMarket'] < 20160101:
+                self.stocks_pool.append(code)
 
         self.stock_amount = stock_amount
         self.start = start
@@ -85,10 +85,10 @@ class Strategy(object):
         if self.counter % self.period == 0:
             df = self.get_last_trade_stock_basics(date)
 
-            sorted_list = self.sort_stock_pool_by_pb(df)
+            # sorted_list = self.sort_stock_pool_by_pb(df)
 
             # 限制流通市值在100-200亿
-            # sorted_list = self.sort_stock_pool_by_pb_filter_big(df, [0, 500000], date)
+            sorted_list = self.sort_stock_pool_by_pb_filter_big(df, [0, 200], date)
             target_list = sorted_list[0:5]
 
             # 卖出不在target_list里面的股票
