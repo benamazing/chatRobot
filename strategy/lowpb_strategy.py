@@ -43,6 +43,11 @@ class Strategy(object):
         for x in hs300.code:
             self.stocks_pool.append(x)
 
+        # df = ts.get_stock_basics()
+        # for code in df.index:
+        #     if df.ix[code]['timeToMarket'] < 20160101:
+        #         self.stocks_pool.append(code)
+
         self.stock_amount = stock_amount
         self.start = start
         self.period = period
@@ -76,7 +81,10 @@ class Strategy(object):
         if self.counter % self.period == 0:
             df = self.get_last_trade_stock_basics(date)
 
-            sorted_list = self.sort_stock_pool_by_pb(df)
+            # sorted_list = self.sort_stock_pool_by_pb(df)
+
+            # 限制流通市值在100-200亿
+            sorted_list = self.sort_stock_pool_by_pb_filter_big(df, [0, 500000], date)
             target_list = sorted_list[0:5]
 
             # 卖出不在target_list里面的股票
@@ -137,6 +145,36 @@ class Strategy(object):
         items = sorted(items, key=lambda x:x['pb'])
         return [item['code'] for item in items]
 
+    # 限制流通市值 < limit
+    def sort_stock_pool_by_pb_filter_big(self, df, limit_range, date):
+        items = []
+        for code in self.stocks_pool:
+            delta = 1
+            pre_day_str = (date - datetime.timedelta(days=delta)).strftime('%Y-%m-%d')
+            result = self.hist_data_collection.find({"code": code, "date": pre_day_str})
+            while result.count() == 0 and pre_day_str >= self.start:
+                delta += 1
+                pre_day_str = (date - datetime.timedelta(days=delta)).strftime('%Y-%m-%d')
+                result = self.hist_data_collection.find({"code": code, "date": pre_day_str})
+            if result.count() == 0:
+                continue
+            item = {}
+            item['price'] = result[0]['close']
+
+            # 有些历史数据的outstanding是以万为单位的，所以要除以10000
+            if df.outstanding.max() > 1000000:
+                item['outstanding'] = df.ix[code]['outstanding'] / 10000
+            else:
+                item['outstanding'] = df.ix[code]['outstanding']
+            item['outstanding_cap'] = item['price'] * item['outstanding']
+            item['code'] = code
+            item['pb'] = df.ix[code]['pb']
+            if item['outstanding_cap'] < limit_range[0] or item['outstanding_cap'] > limit_range[1]:
+                continue
+            items.append(item)
+        items = sorted(items, key=lambda x:x['pb'])
+        return [item['code'] for item in items]
+
     def buy(self, code_list, date):
         date_str = date.strftime('%Y-%m-%d')
         if len(code_list) == 0:
@@ -153,7 +191,7 @@ class Strategy(object):
                 buy_amount = int(piece_cap / (buy_price * 100)) * 100
                 self.hold_stocks[code] = buy_amount
                 self.balance = self.balance - buy_amount * buy_price
-                # print 'Buy %s' % code
+                print 'Buy %s' % code
 
 
     def sell(self, code, date):
@@ -164,7 +202,7 @@ class Strategy(object):
             sell_amount = self.hold_stocks[code]
             self.hold_stocks.pop(code)
             self.balance = self.balance + sell_amount * sell_price
-        # print 'Sell %s' % code
+        print 'Sell %s' % code
 
 if __name__ == '__main__':
     s = Strategy(start='2016-08-30',period=10,stock_amount=5, init_cap=100000)
