@@ -85,10 +85,10 @@ class Strategy(object):
         if self.counter % self.period == 0:
             df = self.get_last_trade_stock_basics(date)
 
-            # sorted_list = self.sort_stock_pool_by_pb(df)
+            sorted_list = self.sort_stock_pool_by_pb(df)
 
             # 限制流通市值在100-200亿
-            sorted_list = self.sort_stock_pool_by_pb_filter_big(df, [0, 500000], date)
+            # sorted_list = self.sort_stock_pool_by_pb_filter_big(df, [0, 500000], date)
             target_list = sorted_list[0:5]
 
             # 卖出不在target_list里面的股票
@@ -197,6 +197,7 @@ class Strategy(object):
                 self.hold_stocks[code] = buy_amount
                 self.balance = self.balance - buy_amount * buy_price
                 print 'Buy %s' % code
+                self.mail_content = self.mail_content + 'Buy %s' % code + '\r\n'
 
 
     def sell(self, code, date):
@@ -208,6 +209,7 @@ class Strategy(object):
             self.hold_stocks.pop(code)
             self.balance = self.balance + sell_amount * sell_price
         print 'Sell %s' % code
+        self.mail_content = self.mail_content + 'Sell %s' % code + '\r\n'
 
 if __name__ == '__main__':
     s = Strategy(start='2016-08-30',period=10,stock_amount=5, init_cap=100000)
