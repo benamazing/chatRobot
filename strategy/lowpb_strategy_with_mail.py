@@ -59,7 +59,13 @@ class Strategy(object):
         self.hold_stocks = {}
         self.counter = 0
 
-        self.mail_content = ''
+        self.mail_content = 'Simulation Initialization Parameters: \r\n'
+        self.mail_content += 'Trade Frequency: %s days\r\n' % self.period
+        self.mail_content += 'Stock Amount: %s \r\n' % self.stock_amount
+        self.mail_content += 'Initial Capitcal: %s \r\n' % self.init_cap
+
+
+
 
 
     def simulate(self):
@@ -72,7 +78,7 @@ class Strategy(object):
             self.operate(idx)
             self.summary(idx)
             idx = idx + datetime.timedelta(days=1)
-        mail_service.send_text_mail(to_addr=['lxb_sysu@163.com'], subject='Low PB', plain_text=self.mail_content)
+        mail_service.send_text_mail(to_addr=['lxb_sysu@163.com'], subject='Low PB strategy: %s, %s, %s' % (self.period, self.stock_amount, self.init_cap), plain_text=self.mail_content)
 
     def operate(self, date):
         date_str = date.strftime('%Y-%m-%d')
@@ -215,7 +221,7 @@ if __name__ == '__main__':
     if len(sys.argv) < 3:
         print 'Usage: python lowpb_strategy_with_mail.py <PERIOD> <STOCK_AMOUNT> <INIT_CAP>'
         exit()
-    s = Strategy(start='2016-08-30',period=sys.argv[1],stock_amount=sys.argv[2], init_cap=sys.argv[3])
+    s = Strategy(start='2016-08-30',period=int(sys.argv[1]),stock_amount=int(sys.argv[2]), init_cap=int(sys.argv[3]))
     s.simulate()
 
 
