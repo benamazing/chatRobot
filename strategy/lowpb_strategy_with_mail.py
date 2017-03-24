@@ -63,8 +63,7 @@ class Strategy(object):
         self.mail_content += 'Trade Frequency: %s days\r\n' % self.period
         self.mail_content += 'Stock Amount: %s \r\n' % self.stock_amount
         self.mail_content += 'Initial Capitcal: %s \r\n' % self.init_cap
-
-
+        self.stock_list_log = ''
 
 
 
@@ -78,7 +77,8 @@ class Strategy(object):
             self.operate(idx)
             self.summary(idx)
             idx = idx + datetime.timedelta(days=1)
-        mail_service.send_text_mail(to_addr=['lxb_sysu@163.com'], subject='Low PB strategy: %s, %s, %s' % (self.period, self.stock_amount, self.init_cap), plain_text=self.mail_content)
+        plain_text = self.mail_content + "\r\n\r\n\r\n" + self.stock_list_log
+        mail_service.send_text_mail(to_addr=['lxb_sysu@163.com'], subject='Low PB strategy: %s, %s, %s' % (self.period, self.stock_amount, self.init_cap), plain_text=plain_text)
 
     def operate(self, date):
         date_str = date.strftime('%Y-%m-%d')
@@ -120,6 +120,7 @@ class Strategy(object):
     def summary(self, date):
         date_str = date.strftime('%Y-%m-%d')
         self.market_cap = 0
+        ss = ""
         for item in self.hold_stocks.items():
             code = item[0]
             amount = item[1]
@@ -131,11 +132,13 @@ class Strategy(object):
                 r = self.hist_data_collection.find({"code":code, "date":date_str})
             price = r[0]['close']
             self.market_cap = self.market_cap + amount * price
+            ss = ss + '    %s: %s: %s' % (code, amount, amount * price)
         self.total_cap = self.balance + self.market_cap
 
         #print '%s---Total: %2f\tBalance: %2f\tMarket_cap: %2f' % (date, self.total_cap, self.balance, self.market_cap)
         print '%s,%2f' % (date.strftime('%Y-%m-%d'), round(self.total_cap, 2))
         self.mail_content = self.mail_content + '%s,%2f' % (date.strftime('%Y-%m-%d'), round(self.total_cap, 2)) + '\r\n'
+        self.stock_list_log = self.stock_list_log + date.strftime('%Y-%m-%d') + ss + "\r\n"
 
     # 获取输入日期的上一个交易日的股票基本面信息
     def get_last_trade_stock_basics(self, date):
