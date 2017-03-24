@@ -89,7 +89,7 @@ class Strategy(object):
 
             # 限制流通市值在100-200亿
             sorted_list = self.sort_stock_pool_by_pb_filter_big(df, [0, 200], date)
-            target_list = sorted_list[0:5]
+            target_list = sorted_list[0:self.stock_amount]
 
             # 卖出不在target_list里面的股票
             for code in self.hold_stocks.keys():
