@@ -212,7 +212,10 @@ class Strategy(object):
         self.mail_content = self.mail_content + 'Sell %s' % code + '\r\n'
 
 if __name__ == '__main__':
-    s = Strategy(start='2016-08-30',period=10,stock_amount=5, init_cap=100000)
+    if len(sys.argv) < 3:
+        print 'Usage: python lowpb_strategy_with_mail.py <PERIOD> <STOCK_AMOUNT> <INIT_CAP>'
+        exit()
+    s = Strategy(start='2016-08-30',period=sys.argv[1],stock_amount=sys.argv[2], init_cap=sys.argv[3])
     s.simulate()
 
 
