@@ -182,6 +182,9 @@ class Strategy(object):
             item['pb'] = df.ix[code]['pb']
             if item['outstanding_cap'] < limit_range[0] or item['outstanding_cap'] > limit_range[1]:
                 continue
+            # 去掉ST股
+            if df.ix[code]['name'].find('*ST') >=0:
+                continue
             items.append(item)
         items = sorted(items, key=lambda x:x['pb'])
         return [item['code'] for item in items]
