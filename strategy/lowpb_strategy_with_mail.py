@@ -162,7 +162,7 @@ class Strategy(object):
             item['pb'] = df.ix[code]['pb']
             items.append(item)
         items = sorted(items, key=lambda x:x['pb'])
-        return [item['code'] for item in items]
+        return [item['code'] for item in items if item['pb'] > 0]
 
     # 限制流通市值 < limit
     def sort_stock_pool_by_pb_filter_big(self, df, limit_range, date):
@@ -188,6 +188,8 @@ class Strategy(object):
             item['outstanding_cap'] = item['price'] * item['outstanding']
             item['code'] = code
             item['pb'] = df.ix[code]['pb']
+            if item['pb'] <= 0:
+                continue
             if item['outstanding_cap'] < limit_range[0] or item['outstanding_cap'] > limit_range[1]:
                 continue
             # 去掉ST股
