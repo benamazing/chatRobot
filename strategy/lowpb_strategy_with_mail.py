@@ -102,6 +102,11 @@ class Strategy(object):
                 if code not in target_list:
                     self.sell(code, date)
 
+            # 卖出ST股
+            for code in self.hold_stocks.keys():
+                if df.ix[code]['name'].find('*ST') >= 0:
+                    self.sell(code, date)
+
             # 买入不在持有列表里的股票
             will_buy_list = []
             for code in target_list:
