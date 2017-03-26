@@ -189,7 +189,6 @@ class Strategy(object):
             report = self.get_latest_report(code=code, date=date)
             if report is None:
                 continue
-            item['roe'] == report['roe']
             while result.count() == 0 and pre_day_str >= self.start:
                 delta += 1
                 pre_day_str = (date - datetime.timedelta(days=delta)).strftime('%Y-%m-%d')
@@ -198,7 +197,7 @@ class Strategy(object):
                 continue
             item = {}
             item['price'] = result[0]['close']
-
+            item['roe'] = report['roe']
             # 有些历史数据的outstanding是以万为单位的，所以要除以10000
             if df.outstanding.max() > 1000000:
                 item['outstanding'] = df.ix[code]['outstanding'] / 10000
