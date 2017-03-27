@@ -101,9 +101,11 @@ class Strategy(object):
             sorted_list = self.sort_stock_pool_by_roe_pb_filter_big(df, [0, 1000000], date)
             target_list = sorted_list[0:self.stock_amount]
 
+            codes = [item['code'] for item in target_list]
+
             # 卖出不在target_list里面的股票
             for code in self.hold_stocks.keys():
-                if code not in target_list:
+                if code not in codes:
                     self.sell(code, date)
 
             # 卖出ST股
@@ -113,9 +115,9 @@ class Strategy(object):
 
             # 买入不在持有列表里的股票
             will_buy_list = []
-            for code in target_list:
+            for code in codes:
                 if code not in self.hold_stocks.keys():
-                    will_buy_list.append(code)
+                    will_buy_list.append(target_list(codes.index[code]))
             self.buy(will_buy_list, date)
 
         self.counter += 1
@@ -187,7 +189,7 @@ class Strategy(object):
 
             # 获取最新的季报
             report = self.get_latest_report(code=code, date=date)
-            if report is None:
+            if report is None or report['roe'] is None:
                 continue
             while result.count() == 0 and pre_day_str >= self.start:
                 delta += 1
@@ -216,15 +218,15 @@ class Strategy(object):
             items.append(item)
         items = sorted(items, key=lambda x:x['pb'])
         items = sorted(items, key=lambda x:x['roe']/x['pb'], reverse=True)
-        return [item['code'] for item in items]
+        return items
 
-    def buy(self, code_list, date):
+    def buy(self, target_list, date):
         date_str = date.strftime('%Y-%m-%d')
-        if len(code_list) == 0:
+        if len(target_list) == 0:
             return
-        piece_cap = self.balance / len(code_list)
-        for code in code_list:
-            r = self.hist_data_collection.find({"code": code, "date": date_str})
+        piece_cap = self.balance / len(target_list)
+        for target in target_list:
+            r = self.hist_data_collection.find({"code": target['code'], "date": date_str})
             #if r.count() == 0:
             #    print 'Failed to buy %s' % code
             if r.count() == 1:
@@ -232,10 +234,10 @@ class Strategy(object):
                     return
                 buy_price = r[0]['open']
                 buy_amount = int(piece_cap / (buy_price * 100)) * 100
-                self.hold_stocks[code] = buy_amount
+                self.hold_stocks[target['code']] = buy_amount
                 self.balance = self.balance - buy_amount * buy_price
-                print 'Buy %s' % code
-                self.mail_content = self.mail_content + 'Buy %s' % code + '\r\n'
+                print 'Buy %s, 10roe/pb = %f' % (target['code'], 10.0 * target['roe']/target['pb'])
+                self.mail_content = self.mail_content +  'Buy %s, 10roe/pb = %f' % (target['code'], 10.0 * target['roe']/target['pb']) + '\r\n'
 
 
     def sell(self, code, date):
