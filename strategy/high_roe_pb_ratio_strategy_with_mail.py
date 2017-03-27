@@ -185,13 +185,9 @@ class Strategy(object):
         for code in self.stocks_pool:
             delta = 1
             pre_day_str = (date - datetime.timedelta(days=delta)).strftime('%Y-%m-%d')
-            print 'Start to get hist data'
             result = self.hist_data_collection.find({"code": code, "date": pre_day_str})
-            print 'Done get hist data'
             # 获取最新的季报
-            print 'Start to get report'
             report = self.get_latest_report(code=code, date=date)
-            print 'Done get report'
             if report is None or report['roe'] is None:
                 continue
             while result.count() == 0 and pre_day_str >= self.start:
