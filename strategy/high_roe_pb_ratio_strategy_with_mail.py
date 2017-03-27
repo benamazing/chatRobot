@@ -51,7 +51,7 @@ class Strategy(object):
 
         df = ts.get_stock_basics()
         for code in df.index:
-            if df.ix[code]['timeToMarket'] < 20160101:
+            if df.ix[code]['timeToMarket'] < 20160101 and df.ix[code]['timeToMarket'] > 0:
                 self.stocks_pool.append(code)
 
         self.stock_amount = stock_amount
@@ -185,6 +185,11 @@ class Strategy(object):
         for code in self.stocks_pool:
             delta = 1
             pre_day_str = (date - datetime.timedelta(days=delta)).strftime('%Y-%m-%d')
+
+            # 排除银行
+            if df.ix[code]['industry'] == '银行':
+                continue
+
             result = self.hist_data_collection.find({"code": code, "date": pre_day_str})
             # 获取最新的季报
             report = self.get_latest_report(code=code, date=date)
