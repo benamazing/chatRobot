@@ -219,7 +219,7 @@ class Strategy(object):
                 self.hold_stocks[target['code']] = buy_amount
                 self.balance = self.balance - buy_amount * buy_price
                 print 'Buy %s-%s' % (target['code'], target['name'])
-                self.mail_content = self.mail_content + 'Buy %s-%s, pb: %s, outstanding: %s' % (target['code'], target['name'], round(target['pb'], 2), round(target['outstanding_cap', 2])) + '\r\n'
+                self.mail_content = self.mail_content + 'Buy %s-%s, pb: %s, outstanding: %s' % (target['code'], target['name'], round(target['pb'], 2), round(target['outstanding_cap'], 2)) + '\r\n'
 
 
     def sell(self, code, date):
