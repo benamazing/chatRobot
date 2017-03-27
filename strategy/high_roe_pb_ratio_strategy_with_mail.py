@@ -215,7 +215,6 @@ class Strategy(object):
             if df.ix[code]['name'].find('*ST') >=0:
                 continue
             items.append(item)
-        items = sorted(items, key=lambda x:x['pb'])
         items = sorted(items, key=lambda x:x['roe']/x['pb'], reverse=True)
         return items
 
