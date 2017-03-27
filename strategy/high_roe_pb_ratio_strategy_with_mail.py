@@ -117,7 +117,7 @@ class Strategy(object):
             will_buy_list = []
             for code in codes:
                 if code not in self.hold_stocks.keys():
-                    will_buy_list.append(target_list(codes.index[code]))
+                    will_buy_list.append(target_list[codes.index[code]])
             self.buy(will_buy_list, date)
 
         self.counter += 1
