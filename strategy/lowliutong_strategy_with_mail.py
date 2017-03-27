@@ -46,7 +46,7 @@ class Strategy(object):
 
         df = ts.get_stock_basics()
         for code in df.index:
-            if df.ix[code]['timeToMarket'] < 20160101:
+            if df.ix[code]['timeToMarket'] < 20160101 and df.ix[code]['timeToMarket'] > 0:
                 self.stocks_pool.append(code)
 
         self.stock_amount = stock_amount
@@ -78,7 +78,7 @@ class Strategy(object):
             self.summary(idx)
             idx = idx + datetime.timedelta(days=1)
         plain_text = self.mail_content + "\r\n\r\n\r\n" + self.stock_list_log
-        mail_service.send_text_mail(to_addr=['lxb_sysu@163.com'], subject='Low PB strategy: %s, %s, %s' % (self.period, self.stock_amount, self.init_cap), plain_text=plain_text)
+        mail_service.send_text_mail(to_addr=['lxb_sysu@163.com'], subject='Low Outstanding CAP strategy: %s, %s, %s' % (self.period, self.stock_amount, self.init_cap), plain_text=plain_text)
 
     def operate(self, date):
         date_str = date.strftime('%Y-%m-%d')
@@ -94,7 +94,7 @@ class Strategy(object):
             # sorted_list = self.sort_stock_pool_by_pb(df)
 
             # 限制流通市值在100-200亿
-            sorted_list = self.sort_stock_pool_by_pb_filter_big(df, [0, 200], date)
+            sorted_list = self.sort_stock_pool_by_liutong_filter_pb(df, [0, 2], date)
             target_list = sorted_list[0:self.stock_amount]
 
             codes = [item['code'] for item in target_list]
@@ -166,8 +166,8 @@ class Strategy(object):
         items = sorted(items, key=lambda x:x['pb'])
         return [item['code'] for item in items if item['pb'] > 0]
 
-    # 限制流通市值 < limit
-    def sort_stock_pool_by_pb_filter_big(self, df, limit_range, date):
+    # 限制市净率 的 limit
+    def sort_stock_pool_by_liutong_filter_pb(self, df, limit_range, date):
         items = []
         for code in self.stocks_pool:
             delta = 1
@@ -193,13 +193,13 @@ class Strategy(object):
             item['pb'] = df.ix[code]['pb']
             if item['pb'] <= 0:
                 continue
-            if item['outstanding_cap'] < limit_range[0] or item['outstanding_cap'] > limit_range[1]:
+            if item['pb'] <= limit_range[0] or item['pb'] >= limit_range[1]:
                 continue
             # 去掉ST股
             if df.ix[code]['name'].find('*ST') >=0:
                 continue
             items.append(item)
-        items = sorted(items, key=lambda x:x['pb'])
+        items = sorted(items, key=lambda x:x['outstanding_cap'])
         return items
 
     def buy(self, target_list, date):
@@ -219,7 +219,7 @@ class Strategy(object):
                 self.hold_stocks[target['code']] = buy_amount
                 self.balance = self.balance - buy_amount * buy_price
                 print 'Buy %s-%s' % (target['code'], target['name'])
-                self.mail_content = self.mail_content + 'Buy %s-%s' % (target['code'], target['name']) + '\r\n'
+                self.mail_content = self.mail_content + 'Buy %s-%s, pb: %s, outstanding: %s' % (target['code'], target['name'], round(target['pb'], 2), round(target['outstanding_cap', 2])) + '\r\n'
 
 
     def sell(self, code, date):
@@ -235,7 +235,7 @@ class Strategy(object):
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
-        print 'Usage: python lowpb_strategy_with_mail.py <PERIOD> <STOCK_AMOUNT> <INIT_CAP>'
+        print 'Usage: python lowliutong_strategy_with_mail.py <PERIOD> <STOCK_AMOUNT> <INIT_CAP>'
         exit()
     s = Strategy(start='2016-08-30',period=int(sys.argv[1]),stock_amount=int(sys.argv[2]), init_cap=int(sys.argv[3]))
     s.simulate()

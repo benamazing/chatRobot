@@ -211,6 +211,7 @@ class Strategy(object):
                 item['outstanding'] = df.ix[code]['outstanding']
             item['outstanding_cap'] = item['price'] * item['outstanding']
             item['code'] = code
+            item['name'] = df.ix[code]['name']
             item['pb'] = df.ix[code]['pb']
             if item['pb'] <= 0:
                 continue
