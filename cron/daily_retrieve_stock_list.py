@@ -8,6 +8,7 @@ import pymongo
 from util.logger import cron_logger
 import analysis.finance_crawler as crawler
 import threading
+import datetime
 
 
 class DailyRetrieve(object):
@@ -29,6 +30,9 @@ class DailyRetrieve(object):
             self.stockDB = self.mongoClient[self.mongo_db_name]
             self.collection = self.stockDB.get_collection('stock_general_info')
 
+        self.day = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+
+
     def retrieveStockBasics(self):
         try:
             df = ts.get_stock_basics()
@@ -39,6 +43,10 @@ class DailyRetrieve(object):
             self.stockDB.drop_collection("stock_general_info")
             cron_logger.info("Cleared current data in stock_general_info!")
             self.stockDB["stock_general_info"].insert_many(json.loads(df.reset_index().to_json(orient="records")))
+
+            df['date'] = self.day
+            self.stockDB['stock_hist_basics'].insert_many(json.loads(df.reset_index().to_json(orient="records")))
+
             cron_logger.info("Updated stock_general_info!")
 
     def supplement_all_debt(self):
@@ -72,6 +80,7 @@ class DailyRetrieve(object):
             total_debt = 0
         print '%s: %s, %s' % (code, current_debt, total_debt)
         self.collection.update_one({"code": code}, {"$set": {"current_debt": current_debt, "total_debt": total_debt}})
+        self.stockDB['stock_hist_basics'].update_one({"code": code, "date": self.day}, {"$set": {"current_debt": current_debt, "total_debt": total_debt}})
 
 if __name__ == '__main__':
     d = DailyRetrieve()
