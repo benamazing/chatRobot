@@ -173,8 +173,8 @@ class Strategy(object):
             item['price'] = result[0]['close']
 
             # 有些历史数据的outstanding是以万为单位的，所以要除以10000
-            max = max([i['outstanding'] for i in stock_basics.values()])
-            if max > 1000000:
+            maxValue = max([i['outstanding'] for i in stock_basics.values()])
+            if maxValue > 1000000:
                 item['outstanding'] = stock_basics[code]['outstanding'] / 10000
             else:
                 item['outstanding'] = stock_basics[code]['outstanding']
