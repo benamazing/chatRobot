@@ -4,37 +4,17 @@
 import sys
 sys.path.append('..')
 
-import json
-import pymongo
 import tushare as ts
 import datetime
 from base import BaseScheduleStrategy
 
-'''测试:'''
+'''低市净率策略'''
+
 
 class LowPBStrategy(BaseScheduleStrategy):
-
-    def __init__(self, start, period, stock_amount, init_cap, send_mail=1):
-        super(LowPBStrategy, self).__init__(start, period, stock_amount, init_cap, send_mail)
+    def __init__(self, start, period, stock_amount, init_cap, send_mail=1, source='mongo'):
+        super(LowPBStrategy, self).__init__(start, period, stock_amount, init_cap, send_mail, source)
         self.strategy_name = 'Low PB'
-
-
-        self.mongo_host = '127.0.0.1'
-        self.mongo_port = 27017
-        self.mongo_db_name = 'stock'
-
-        with open("../conf.json") as f:
-            conf_str = f.read()
-            conf = json.loads(conf_str)
-            if r'mongo_host' in conf:
-                self.mongo_host = conf['mongo_host']
-            if r'mongo_db_name' in conf:
-                self.mongo_db_name = conf['mongo_db_name']
-
-        self.mongoClient = pymongo.MongoClient(host=self.mongo_host, port=self.mongo_port)
-        self.stockDB = self.mongoClient[self.mongo_db_name]
-        self.hist_data_collection = self.stockDB['stock_hist_data']
-
 
         # 中证500为股票池
         # zz500 = ts.get_zz500s()
@@ -51,20 +31,19 @@ class LowPBStrategy(BaseScheduleStrategy):
             if df.ix[code]['timeToMarket'] < 20160101:
                 self.stocks_pool.append(code)
 
-        self.stock_list_log = ''
-
-
     def operate(self, date):
         date_str = date.strftime('%Y-%m-%d')
-        count = self.hist_data_collection.find({"date":date_str}).count()
+        count = self.hist_data_collection.find({"date": date_str}).count()
 
         # 非交易日
         if count == 0:
             return
 
         if self.counter % self.period == 0:
-            df = self.get_last_trade_stock_basics_from_mongo(date)
-
+            if self.source == 'mongo':
+                df = self.get_last_trade_stock_basics_from_mongo(date)
+            else:
+                df = self.get_last_trade_stock_basics_from_tushare(date)
 
             # 限制流通市值在100-200亿
             sorted_list = self.sort_stock_pool_by_pb_filter_big(df, [0, 200], date)
@@ -91,7 +70,6 @@ class LowPBStrategy(BaseScheduleStrategy):
 
         self.counter += 1
 
-
     # 限制流通市值 < limit
     def sort_stock_pool_by_pb_filter_big(self, df, limit_range, date):
         items = []
@@ -105,7 +83,7 @@ class LowPBStrategy(BaseScheduleStrategy):
                 result = self.hist_data_collection.find({"code": code, "date": pre_day_str})
             if result.count() == 0:
                 continue
-            item = {}
+            item = dict()
             item['price'] = result[0]['close']
 
             # 有些历史数据的outstanding是以万为单位的，所以要除以10000
@@ -122,25 +100,28 @@ class LowPBStrategy(BaseScheduleStrategy):
             if item['outstanding_cap'] < limit_range[0] or item['outstanding_cap'] > limit_range[1]:
                 continue
             # 去掉ST股
-            if df.ix[code]['name'].find('*ST') >=0:
+            if df.ix[code]['name'].find('*ST') >= 0:
                 continue
             items.append(item)
-        items = sorted(items, key=lambda x:x['pb'])
+        items = sorted(items, key=lambda x: x['pb'])
         return items
 
 if __name__ == '__main__':
     if len(sys.argv) < 4:
-        print 'Usage: %s <PERIOD> <STOCK_AMOUNT> <INIT_CAP> <SEND_EMAIL>' % sys.argv[0]
+        print 'Usage: %s <PERIOD> <STOCK_AMOUNT> <INIT_CAP> <SEND_EMAIL> <SOURCE>' % sys.argv[0]
+        print '<PERIOD>: mandatory'
+        print '<STOCK_AMOUNT>: mandatory'
+        print '<INIT_CAP>: mandatory'
+        print '<SEND_EMAIL>: optional, 0/1, default: 1'
+        print '<SOURCE>: optional, mongo/tushare, default: mongo'
         exit()
-    if len(sys.argv) == 4:
-        s = LowPBStrategy(start='2016-08-30',period=int(sys.argv[1]),stock_amount=int(sys.argv[2]), init_cap=int(sys.argv[3]), send_mail=1)
-        s.simulate()
-        exit()
+    send_mail = 1
+    source = 'mongo'
     if len(sys.argv) == 5:
-        s = LowPBStrategy(start='2016-08-30',period=int(sys.argv[1]),stock_amount=int(sys.argv[2]), init_cap=int(sys.argv[3]), send_mail=int(sys.argv[4]))
-        s.simulate()
-        exit()
-
-
-
-
+        send_mail = int(sys.argv[4])
+    if len(sys.argv) == 6:
+        send_mail = int(sys.argv[4])
+        source = sys.argv[5]
+    s = LowPBStrategy(start='2016-08-30', period=int(sys.argv[1]), stock_amount=int(sys.argv[2]),
+                      init_cap=int(sys.argv[3]), send_mail=send_mail, source=source)
+    s.simulate()
