@@ -45,6 +45,7 @@ class DailyRetrieve(object):
             self.stockDB["stock_general_info"].insert_many(json.loads(df.reset_index().to_json(orient="records")))
 
             df['date'] = self.day
+            self.stockDB['stock_hist_basics'].delete_many({"date": self.day})
             self.stockDB['stock_hist_basics'].insert_many(json.loads(df.reset_index().to_json(orient="records")))
 
             cron_logger.info("Updated stock_general_info!")
