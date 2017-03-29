@@ -10,6 +10,7 @@ import tushare as ts
 import datetime
 from urllib2 import HTTPError
 from util.mail_util import mail_service
+import pandas as pd
 
 # 定期的strategy
 class BaseScheduleStrategy(object):
@@ -101,3 +102,31 @@ class BaseScheduleStrategy(object):
         print '%s,%2f' % (date.strftime('%Y-%m-%d'), round(self.total_cap, 2))
         self.mail_content = self.mail_content + '%s,%2f' % (date.strftime('%Y-%m-%d'), round(self.total_cap, 2)) + '\r\n'
         self.stock_list_log = self.stock_list_log + date.strftime('%Y-%m-%d') + ss + "\r\n"
+
+
+    # 从tushare获取输入日期的上一个交易日的股票基本面信息
+    def get_last_trade_stock_basics_from_tushare(self, date):
+        pre_day = date - datetime.timedelta(days=1)
+        df = None
+        while df is None:
+            try:
+                pre_day_str = pre_day.strftime('%Y-%m-%d')
+                df = ts.get_stock_basics(date=pre_day_str)
+            except HTTPError, e:
+                pre_day = datetime.datetime.strptime(pre_day_str, '%Y-%m-%d') - datetime.timedelta(days=1)
+                df = None
+        return df
+
+
+    # 从本地mongoDB获取输入日期的上一个交易日的股票基本面信息
+    def get_last_trade_stock_basics_from_mongo(self, date):
+        pre_day = date - datetime.timedelta(days=1)
+        pre_day_str = pre_day.strftime('%Y-%m-%d')
+        rs = self.stockDB['stock_hist_basics'].find({"date": pre_day_str}, {"_id":0})
+        while rs.count() == 0:
+            pre_day = datetime.datetime.strptime(pre_day_str, '%Y-%m-%d') - datetime.timedelta(days=1)
+            pre_day_str = pre_day.strftime('%Y-%m-%d')
+            rs = self.stockDB['stock_hist_basics'].find({"date": pre_day_str})
+        df = pd.DataFrame(list(rs)).set_index('code')
+        return df
+

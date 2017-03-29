@@ -8,9 +8,6 @@ import json
 import pymongo
 import tushare as ts
 import datetime
-from urllib2 import HTTPError
-from util.mail_util import mail_service
-import pandas as pd
 from base import BaseScheduleStrategy
 
 '''测试:'''
@@ -20,7 +17,6 @@ class LowPBStrategy(BaseScheduleStrategy):
     def __init__(self, start, period, stock_amount, init_cap, send_mail=1):
         super(LowPBStrategy, self).__init__(start, period, stock_amount, init_cap, send_mail)
         self.strategy_name = 'Low PB'
-
 
         self.mongo_host = '127.0.0.1'
         self.mongo_port = 27017
@@ -37,7 +33,6 @@ class LowPBStrategy(BaseScheduleStrategy):
         self.mongoClient = pymongo.MongoClient(host=self.mongo_host, port=self.mongo_port)
         self.stockDB = self.mongoClient[self.mongo_db_name]
         self.hist_data_collection = self.stockDB['stock_hist_data']
-
 
         # 中证500为股票池
         # zz500 = ts.get_zz500s()
@@ -66,9 +61,7 @@ class LowPBStrategy(BaseScheduleStrategy):
             return
 
         if self.counter % self.period == 0:
-            df = self.get_last_trade_stock_basics(date)
-
-            # sorted_list = self.sort_stock_pool_by_pb(df)
+            df = self.get_last_trade_stock_basics_from_tushare(date)
 
             # 限制流通市值在100-200亿
             sorted_list = self.sort_stock_pool_by_pb_filter_big(df, [0, 200], date)
@@ -94,19 +87,6 @@ class LowPBStrategy(BaseScheduleStrategy):
             self.buy(will_buy_list, date)
 
         self.counter += 1
-
-
-    # 获取输入日期的上一个交易日的股票基本面信息
-    def get_last_trade_stock_basics(self, date):
-        pre_day = date - datetime.timedelta(days=1)
-        pre_day_str = pre_day.strftime('%Y-%m-%d')
-        rs = self.stockDB['stock_hist_basics'].find({"date": pre_day_str}, {"_id":0})
-        while rs.count() == 0:
-            pre_day = datetime.datetime.strptime(pre_day_str, '%Y-%m-%d') - datetime.timedelta(days=1)
-            pre_day_str = pre_day.strftime('%Y-%m-%d')
-            rs = self.stockDB['stock_hist_basics'].find({"date": pre_day_str})
-        df = pd.DataFrame(list(rs)).set_index('code')
-        return df
 
 
     # 限制流通市值 < limit
@@ -145,9 +125,10 @@ class LowPBStrategy(BaseScheduleStrategy):
         items = sorted(items, key=lambda x:x['pb'])
         return items
 
+
 if __name__ == '__main__':
     if len(sys.argv) < 4:
-        print 'Usage: %s <PERIOD> <STOCK_AMOUNT> <INIT_CAP>' % sys.argv[0]
+        print 'Usage: %s <PERIOD> <STOCK_AMOUNT> <INIT_CAP> <SEND_EMAIL>' % sys.argv[0]
         exit()
     if len(sys.argv) == 4:
         s = LowPBStrategy(start='2016-08-30',period=int(sys.argv[1]),stock_amount=int(sys.argv[2]), init_cap=int(sys.argv[3]), send_mail=1)
