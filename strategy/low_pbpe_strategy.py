@@ -14,7 +14,7 @@ from base import BaseScheduleStrategy
 class LowPBPEStrategy(BaseScheduleStrategy):
     def __init__(self, start, period, stock_amount, init_cap, send_mail=1, source='mongo'):
         super(LowPBPEStrategy, self).__init__(start, period, stock_amount, init_cap, send_mail, source)
-        self.strategy_name = 'Low PB'
+        self.strategy_name = 'Low PBPE'
 
         # 中证500为股票池
         # zz500 = ts.get_zz500s()

@@ -17,7 +17,7 @@ class LowTotalStrategy(BaseScheduleStrategy):
 
     def __init__(self, start, period, stock_amount, init_cap, send_mail=1, source='mongo'):
         super(LowTotalStrategy, self).__init__(start, period, stock_amount, init_cap, send_mail, source)
-        self.strategy_name = 'Low Circulation Market Value'
+        self.strategy_name = 'Low Total Market Cap'
 
         # 中证500为股票池
         # zz500 = ts.get_zz500s()
