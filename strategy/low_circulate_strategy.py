@@ -49,7 +49,7 @@ class LowOutstandingStrategy(BaseScheduleStrategy):
                 df = self.get_last_trade_stock_basics_from_tushare(date)
 
             # 限制流通市值在100-200亿
-            sorted_list = self.sort_stock_pool_by_liutong_filter_pb(df, [0, 2], date)
+            sorted_list = self.sort_stock_pool_by_liutong_filter_pb(df, [0, 5], date)
             target_list = sorted_list[0:self.stock_amount]
 
             codes = [item['code'] for item in target_list]
