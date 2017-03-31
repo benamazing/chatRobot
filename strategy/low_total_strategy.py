@@ -90,9 +90,9 @@ class LowTotalStrategy(BaseScheduleStrategy):
 
             # 有些历史数据的total是以万为单位的，所以要除以10000
             if df.total.max() > 1000000:
-                item['total'] = df.ix[code]['total'] / 10000
+                item['total'] = df.ix[code]['totals'] / 10000
             else:
-                item['total'] = df.ix[code]['total']
+                item['total'] = df.ix[code]['totals']
             item['total_cap'] = item['price'] * item['total']
             item['code'] = code
             item['name'] = df.ix[code]['name']
