@@ -9,9 +9,8 @@ import tushare as ts
 
 class LowCirculateOperation(BaseScheduleOperation):
 
-    def __init__(self, start, period, stock_amount, init_cap, send_mail=1, source='mongo'):
-        super(LowCirculateOperation, self).__init__(start, period, stock_amount, init_cap, send_mail, source)
-        self.strategy_name = 'Low Circulation Market Value'
+    def __init__(self, send_mail=1):
+        super(LowCirculateOperation, self).__init__(send_mail)
 
         # 中证500为股票池
         # zz500 = ts.get_zz500s()
@@ -28,34 +27,13 @@ class LowCirculateOperation(BaseScheduleOperation):
             if df.ix[code]['timeToMarket'] < 20160101:
                 self.stocks_pool.append(code)
 
-    def operate(self):
-        today = datetime.datetime.now().strftime('%Y-%m-%d')
-        if self.counter % self.period == 0:
-            df = ts.get_stock_basics()
+    def _get_strategy_name(self):
+        return 'Low Circulation Market Value'
 
-            # 限制流通市值在100-200亿
-            sorted_list = self.sort_stock_pool_by_liutong_filter_pb(df, [0, 5])
-            target_list = sorted_list[0:self.stock_amount]
-
-            codes = [item['code'] for item in target_list]
-
-            # 卖出不在target_list里面的股票
-            for code in self.hold_stocks.keys():
-                if code not in codes:
-                    self.sell(code)
-
-            # 卖出ST股
-            for code in self.hold_stocks.keys():
-                if df.ix[code]['name'].find('*ST') >= 0:
-                    self.sell(code)
-
-            # 买入不在持有列表里的股票
-            will_buy_list = []
-            for code in codes:
-                if code not in self.hold_stocks.keys():
-                    will_buy_list.append(target_list[codes.index(code)])
-            self.buy(will_buy_list)
-        self.counter += 1
+    def get_target_list(self):
+        df = ts.get_stock_basics()
+        sorted_list = self.sort_stock_pool_by_liutong_filter_pb(df, [0, 5])
+        return sorted_list[0: self.strategy['stock_amount']]
 
     # 限制市净率 的 limit
     def sort_stock_pool_by_liutong_filter_pb(self, df, limit_range):
@@ -97,21 +75,6 @@ class LowCirculateOperation(BaseScheduleOperation):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) < 4:
-        print 'Usage: %s <PERIOD> <STOCK_AMOUNT> <INIT_CAP> <SEND_EMAIL> <SOURCE>' % sys.argv[0]
-        print '<PERIOD>: mandatory'
-        print '<STOCK_AMOUNT>: mandatory'
-        print '<INIT_CAP>: mandatory'
-        print '<SEND_EMAIL>: optional, 0/1, default: 1'
-        print '<SOURCE>: optional, mongo/tushare, default: mongo'
-        exit()
-    send_mail = 1
-    source = 'mongo'
-    if len(sys.argv) == 5:
-        send_mail = int(sys.argv[4])
-    if len(sys.argv) == 6:
-        send_mail = int(sys.argv[4])
-        source = sys.argv[5]
-    s = LowCirculateOperation(start='2016-08-30', period=int(sys.argv[1]), stock_amount=int(sys.argv[2]),
-                               init_cap=int(sys.argv[3]), send_mail=send_mail, source=source)
+    s = LowCirculateOperation(send_mail=1)
     s.operate()
+    s.summary()

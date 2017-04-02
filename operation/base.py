@@ -8,13 +8,12 @@ import json
 import pymongo
 import tushare as ts
 import datetime
-import pandas as pd
-from urllib2 import HTTPError
 from util.mail_util import mail_service
+
 
 class BaseScheduleOperation(object):
 
-    def __init__(self, start, period, stock_amount, init_cap, send_mail=1, source='mongo'):
+    def __init__(self, send_mail=1):
         self.mongo_host = '127.0.0.1'
         self.mongo_port = 27017
         self.mongo_db_name = 'stock'
@@ -36,42 +35,48 @@ class BaseScheduleOperation(object):
         self.capital_collection = self.stockDB['stock_capitals']
         self.counter_collection = self.stockDB['stock_counters']
         self.hold_stocks_collection = self.stockDB['stock_hold_stocks']
+        self.stock_actions_collection = self.stockDB['stock_daily_actions']
         self.stock_holiday_collection = self.stockDB['stock_holidays']
-        self.strategy_name = 'Basic Strategy'
-        self.strategy = self.get_strategy_by_name(self.strategy_name)
+        self.strategy_name = self._get_strategy_name()
+
+        self.strategy = self.get_strategy()
 
         # 获取当前资金情况
-        self.balance, self.market_cap, self.total_cap = self.get_current_capitals(self.strategy_name)
+        self.balance, self.market_cap, self.total_cap = self.get_current_capitals()
 
         # 获取计时器
-        self.counter = self.get_current_counter(self.strategy_name)
+        self.counter = self.get_current_counter()
 
         # 获取当前持仓
-        self.hold_stocks = self.get_current_hold_stocks(self.strategy_name)
+        self.hold_stocks = self.get_current_hold_stocks()
 
-        self.stock_pool = []
+        self.stocks_pool = []
 
         self.actions = []
 
-        self.source = source
-
+        self.send_mail = send_mail
         # email content
         self.mail_content = ''
         self.stock_list_log = ''
 
-        self.send_mail = send_mail
+    # need to be implemented
+    @staticmethod
+    def _get_strategy_name(self):
+        return 'Basic Strategy'
 
     def operate(self):
         today = datetime.datetime.now()
 
         # 周六日
         if today.weekday() == 5 or today.weekday() == 6:
+            print 'Today is weekend'
             return
 
         count = self.stock_holiday_collection.count({"date": today.strftime('%Y-%m-%d')})
 
         # 节假日
-        if count == 0:
+        if count > 0:
+            print 'Today is holiday'
             return
 
         if self.counter % self.strategy['period'] == 0:
@@ -97,6 +102,7 @@ class BaseScheduleOperation(object):
             self.buy(will_buy_list)
         self.counter += 1
 
+    # need to be implemented
     def get_target_list(self):
         return []
 
@@ -138,29 +144,58 @@ class BaseScheduleOperation(object):
             action['amount'] = sell_amount
             self.actions.append(action)
 
-    def get_strategy_by_name(self, strategy_name):
-        rs = self.strategy_collection.find({"strategy_name": strategy_name})
+    def get_strategy(self):
+        rs = self.strategy_collection.find({"strategy_name": self.strategy_name})
         if rs.count() == 0:
             return None
         return rs[0]
 
-    def get_current_capitals(self, strategy_name):
-        rs = self.capital_collection.find({"strategy_name": strategy_name})
+    def get_current_capitals(self):
+        rs = self.capital_collection.find({"strategy_name": self.strategy_name}).sort("date", -1)
         if rs.count() == 0:
-            return 0, 0, 0
+            return self.strategy['init_cap'], 0, self.strategy['init_cap']
         return rs[0]['balance'], rs[0]['market_cap'], rs[0]['total_cap']
 
-    def get_current_counter(self, strategy_name):
-        rs = self.counter_collection.find({"strategy_name": strategy_name})
+    def get_current_counter(self):
+        rs = self.counter_collection.find({"strategy_name": self.strategy_name})
         if rs.count() == 0:
             return None
         return rs[0]['counter']
 
-    def get_current_hold_stocks(self, strategy_name):
+    def get_current_hold_stocks(self):
         dt = datetime.datetime.now() - datetime.timedelta(days=15)
-        rs = self.hold_stocks_collection.find({"strategy_name": strategy_name}).sort("date", -1)
+        rs = self.hold_stocks_collection.find({"strategy_name": self.strategy_name}).sort("date", -1)
         if rs.count() == 0:
             return dict()
         return rs[0]['stocks']
 
+    def summary(self):
+        print '%-15s%-15s%-15s%-15s%-15s' % ('Operation', 'Code', 'Name', 'Price', 'Amount')
+        self.mail_content += '%-15s%-15s%-15s%-15s%-15s' % ('Operation', 'Code', 'Name', 'Price', 'Amount') + '\r\n'
+        today = datetime.datetime.now().strftime('%Y-%m-%d')
+        for action in self.actions:
+            print '%-15s%-15s%-15s%-15s%-15s' % (action['operation'], action['code'], action['name'], action['price'], action['amount'])
+            self.mail_content += '%-15s%-15s%-15s%-15s%-15s' % (action['operation'], action['code'], action['name'], action['price'], action['amount']) + '\r\n'
+            action['date'] = today
+            self.stock_actions_collection.insert(action)
+        self.update_counter()
+        self.update_hold_stocks()
+        self.update_balance()
+
+        # send result mail
+        if self.send_mail == 1:
+            today = datetime.datetime.now().strftime('%Y-%m-%d')
+            mail_service.send_text_mail(to_addr=['lxb_sysu@163.com'],
+                                        subject='%s: %s' % (self.strategy_name, today), plain_text=self.mail_content)
+
+    def update_counter(self):
+        self.counter_collection.update_one({"strategy_name": self.strategy_name}, {"$set":{"counter": self.counter}})
+
+    def update_hold_stocks(self):
+        today = datetime.datetime.now().strftime('%Y-%m-%d')
+        self.hold_stocks_collection.insert({"strategy_name": self.strategy_name, "date": today, "stocks": self.hold_stocks})
+
+    def update_balance(self):
+        today = datetime.datetime.now().strftime('%Y-%m-%d')
+        self.capital_collection.insert({"strategy_name": self.strategy_name, "date": today, "balance": self.balance})
 
