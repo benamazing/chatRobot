@@ -15,4 +15,6 @@ db.stock_holidays.insert({"date": "2017-10-03"});
 db.stock_holidays.insert({"date": "2017-10-04"});
 db.stock_holidays.insert({"date": "2017-10-05"});
 db.stock_holidays.insert({"date": "2017-10-06"});
+db.stock_strategies.insert({"strategy_name": "Low Circulation Market Value", "period": 10, "stock_amount": 5, "init_cap": 100000});
+db.stock_counter.insert({"strategy_name": "Low Circulation Market Value", "counter": 0});
 
