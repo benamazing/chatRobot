@@ -70,6 +70,7 @@ class BaseScheduleOperation(object):
         # 周六日
         if today.weekday() == 5 or today.weekday() == 6:
             print 'Today is weekend'
+            self.mail_content += 'Today is weekend\r\n'
             return
 
         count = self.stock_holiday_collection.count({"date": today.strftime('%Y-%m-%d')})
@@ -77,6 +78,7 @@ class BaseScheduleOperation(object):
         # 节假日
         if count > 0:
             print 'Today is holiday'
+            self.mail_content += 'Today is holiday\r\n'
             return
 
         if self.counter % self.strategy['period'] == 0:
