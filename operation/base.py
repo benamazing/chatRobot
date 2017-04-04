@@ -197,5 +197,5 @@ class BaseScheduleOperation(object):
 
     def update_balance(self):
         today = datetime.datetime.now().strftime('%Y-%m-%d')
-        self.capital_collection.insert({"strategy_name": self.strategy_name, "date": today, "balance": self.balance})
+        self.capital_collection.insert({"strategy_name": self.strategy_name, "date": today, "balance": self.balance, "market_cap": self.market_cap, "total_cap": self.total_cap})
 
