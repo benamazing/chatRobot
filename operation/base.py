@@ -81,7 +81,7 @@ class BaseScheduleOperation(object):
             self.mail_content += 'Today is holiday\r\n'
             return
 
-        if self.counter % self.strategy['period'] == 0:
+        if self.counter % int(self.strategy['period']) == 0:
             target_list = self.get_target_list()
             codes = [item['code'] for item in target_list]
 
@@ -116,8 +116,8 @@ class BaseScheduleOperation(object):
         df = ts.get_realtime_quotes(symbols=[x['code'] for x in target_list])
         df = df.set_index('code')
         for target in target_list:
-            if target['code'] in df.index():
-                open_price = df.ix[target['code']]['open']
+            if target['code'] in df.index:
+                open_price = float(df.ix[target['code']]['open'])
                 buy_amount = int(piece_cap / (open_price * 100)) * 100
                 self.hold_stocks[target['code']] = buy_amount
                 self.balance -= buy_amount * open_price

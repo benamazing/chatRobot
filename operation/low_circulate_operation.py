@@ -33,7 +33,7 @@ class LowCirculateOperation(BaseScheduleOperation):
     def get_target_list(self):
         df = ts.get_stock_basics()
         sorted_list = self.sort_stock_pool_by_liutong_filter_pb(df, [0, 5])
-        return sorted_list[0: self.strategy['stock_amount']]
+        return sorted_list[0: int(self.strategy['stock_amount'])]
 
     # 限制市净率 的 limit
     def sort_stock_pool_by_liutong_filter_pb(self, df, limit_range):
@@ -43,7 +43,7 @@ class LowCirculateOperation(BaseScheduleOperation):
             delta = 1
             pre_day_str = (date - datetime.timedelta(days=delta)).strftime('%Y-%m-%d')
             result = self.hist_data_collection.find({"code": code, "date": pre_day_str})
-            while result.count() == 0 and pre_day_str >= self.start:
+            while result.count() == 0 and pre_day_str > '2016-10-01':
                 delta += 1
                 pre_day_str = (date - datetime.timedelta(days=delta)).strftime('%Y-%m-%d')
                 result = self.hist_data_collection.find({"code": code, "date": pre_day_str})
