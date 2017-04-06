@@ -32,7 +32,6 @@ def update_capital_by_strategy_name(strategy_name):
     if rs.count() == 0:
         return
     stocks = rs[0]['stocks']
-    stocks = dict()
     market_cap = 0
     for code in stocks.keys():
         df = ts.get_realtime_quotes(code)
