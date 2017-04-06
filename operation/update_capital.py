@@ -4,6 +4,7 @@
 import json
 import pymongo
 import tushare as ts
+import datetime
 import sys
 sys.path.append('..')
 
@@ -26,6 +27,7 @@ hist_data_collection = stockDB['stock_hist_data']
 strategy_collection = stockDB['stock_strategies']
 capital_collection = stockDB['stock_capitals']
 hold_stocks_collection = stockDB['stock_hold_stocks']
+stock_holiday_collection = stockDB['stock_holidays']
 
 def update_capital_by_strategy_name(strategy_name):
     rs = hold_stocks_collection.find({"strategy_name": strategy_name}).sort("date", -1).limit(1)
@@ -47,6 +49,12 @@ def update_capital_by_strategy_name(strategy_name):
 
 
 def update_all_capital():
+    today = datetime.datetime.now()
+    count = stock_holiday_collection.count({"date": today.strftime('%Y-%m-%d')})
+    if count > 0:
+        print 'Today is Holiday'
+        return
+    
     rs = strategy_collection.find({})
     if rs.count() == 0:
         return
