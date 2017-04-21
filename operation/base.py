@@ -134,10 +134,10 @@ class BaseScheduleOperation(object):
         date_str = datetime.datetime.now().strftime('%Y-%m-%d')
         df = ts.get_realtime_quotes(code)
         if df is not None:
-            open_price = df.iloc[0]['open']
-            sell_amount = self.hold_stocks[code]
+            open_price = float(df.iloc[0]['open'])
+            sell_amount = int(self.hold_stocks[code])
             self.hold_stocks.pop(code)
-            self.balance = self.balance + sell_amount * open_price
+            self.balance += sell_amount * open_price
             action = dict()
             action['operation'] = 'sell'
             action['code'] = code
