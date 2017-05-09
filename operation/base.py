@@ -120,6 +120,9 @@ class BaseScheduleOperation(object):
         for target in target_list:
             if target['code'] in df.index:
                 open_price = float(df.ix[target['code']]['open'])
+                # 停牌。。或未开市
+                if open_price == 0:
+                    return
                 buy_amount = int(piece_cap / (open_price * 100)) * 100
                 self.hold_stocks[target['code']] = buy_amount
                 self.balance -= buy_amount * open_price
